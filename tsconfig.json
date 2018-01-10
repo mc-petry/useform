@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "target": "es5",
+    "module": "commonjs",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "jsx": "react",
+    "lib": [
+      "dom",
+      "es2015"
+    ],
+    "outDir": "./dist",
+    "types": []
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./src/__tests__"
+  ]
+}
