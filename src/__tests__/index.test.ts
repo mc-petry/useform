@@ -11,12 +11,9 @@ describe('form', () => {
     age: number
   }
 
-  const form = formBuilder<UserDTO>()
-    .fields(field => ({
-      name: field<string>()
-        .onChange(value => {
-          // TODO
-        }),
+  const form = formBuilder<UserDTO>(field =>
+    ({
+      name: field<string>(),
 
       age: field<number>()
         .validate(value =>
@@ -24,6 +21,9 @@ describe('form', () => {
           (value && value < 18 && 'lessThan18')
         )
     }))
+    .configure({
+
+    })
     .build({
       forceUpdate: () => {
         // TODO

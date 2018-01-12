@@ -28,32 +28,40 @@ export type ValidationResult = any
 export type TransformErrorFn = (input: any, field: FieldData) => any
 export type LabelFormatterFn = (field: FieldData) => any
 export type ValidateFn<V, T> = (value: V, form: FormClass<T>) => ValidationResult
-export type OnChangeFn<V> = (newValue: V) => void
+export type ChangedFn<V, T> = (newValue: V, form: FormClass<T>) => void
 export type SubmitFn<T> = (values: T) => void
+export type FieldsList<T> = ReadonlyArray<keyof T> | (keyof T)
 
-export interface FieldClass<TValue, TField> {
-  validate(fn: ValidateFn<TValue, TField>): FieldClass<TValue, TField>
-  warn(fn: ValidateFn<TValue, TField>): FieldClass<TValue, TField>
-  onChange(fn: OnChangeFn<TValue>): FieldClass<TValue, TField>
+export interface FieldClass<TValue, TFields> {
+  validate(fn: ValidateFn<TValue, TFields>): FieldClass<TValue, TFields>
+  changed(fn: ChangedFn<TValue, TFields>): FieldClass<TValue, TFields>
+  warn(fn: ValidateFn<TValue, TFields>): FieldClass<TValue, TFields>
+  dependent(fields: FieldsList<TFields>): FieldClass<TValue, TFields>
 }
 
-class Field<TValue, TField> implements FieldClass<TValue, TField> {
-  validateFn?: ValidateFn<TValue, TField>
-  warnFn?: ValidateFn<TValue, TField>
-  onChangeFn?: OnChangeFn<TValue>
+class Field<TValue, TFields> implements FieldClass<TValue, TFields> {
+  _validateFn?: ValidateFn<TValue, TFields>
+  _changedFn?: ChangedFn<TValue, TFields>
+  _warnFn?: ValidateFn<TValue, TFields>
+  _dependent?: FieldsList<TFields>
 
-  validate(fn: ValidateFn<TValue, TField>) {
-    this.validateFn = fn
+  validate(fn: ValidateFn<TValue, TFields>) {
+    this._validateFn = fn
     return this
   }
 
-  warn(fn: ValidateFn<TValue, TField>) {
-    this.warnFn = fn
+  changed(fn: ChangedFn<TValue, TFields>) {
+    this._changedFn = fn
     return this
   }
 
-  onChange(fn: OnChangeFn<TValue>) {
-    this.onChangeFn = fn
+  warn(fn: ValidateFn<TValue, TFields>) {
+    this._warnFn = fn
+    return this
+  }
+
+  dependent(fields: FieldsList<TFields>) {
+    this._dependent = fields
     return this
   }
 }
@@ -65,31 +73,31 @@ interface UpdateableComponent {
   forceUpdate(): void
 }
 
-export interface FormOptions<T> {
-  submit?: SubmitFn<T>
-  transformError?: (input: any, field: FieldData) => any
-  labelFormatter?: (field: FieldData) => any
+export interface FormTransformers {
+  error?: (input: any, field: FieldData) => any
+  label?: (field: FieldData) => any
 }
 
-export interface FormBuilderClassFields<T> {
-  fields(fn: (field: <TValue = any>() => FieldClass<TValue, T>) => {[P in keyof T]: FieldClass<T[P], T> }): FormBuilderClass<T>
+export interface FormOptions<T> {
+  submit?: SubmitFn<T>
+  transformers?: FormTransformers
+}
+
+export interface FormBuilderClassConfigure<T> extends FormBuilderClass<T> {
+  configure(options: FormOptions<T>): FormBuilderClass<T>
 }
 
 export interface FormBuilderClass<T> {
-  configure(options: FormOptions<T>): FormBuilderClass<T>
   build(component: { forceUpdate(): void }): FormClass<T>
 }
 
 class FormBuilder<T> implements
   FormBuilderClass<T>,
-  FormBuilderClassFields<T>
+  FormBuilderClassConfigure<T>
 {
   private _options: FormOptions<T> = {}
-  private _fieldsDefs: FieldsDefs<T>
 
-  fields(fn: (field: <TValue = any>() => FieldClass<TValue, T>) => FieldsDefs<T>) {
-    this._fieldsDefs = fn(newField)
-    return this
+  constructor(private _fieldsDefs: FieldsDefs<T>) {
   }
 
   configure(options: FormOptions<T>) {
@@ -102,20 +110,20 @@ class FormBuilder<T> implements
   }
 }
 
-export const formBuilder = <T extends { [key: string]: any }>(): FormBuilderClassFields<T> =>
-  new FormBuilder<T>()
+export const formBuilder = <T extends { [key: string]: any }>(fn: (field: <TValue = any>() => FieldClass<TValue, T>) => FieldsDefs<T>): FormBuilderClassConfigure<T> =>
+  new FormBuilder<T>(fn(newField))
 
 export type ErrorsMapList<T> = {
   field: keyof T
-  error: ValidationResult
-  warn: ValidationResult
+  error?: ValidationResult
+  warn?: ValidationResult
 }[]
 
 export interface FormClass<T extends { [key: string]: any }> {
   readonly fields: Fields<{[P in keyof T]: FieldClass<T[P], T> }>
   setValues(values: Partial<T> | undefined, strict?: boolean): void
   getValues(): T
-  validate(): Promise<boolean>
+  validate(fields?: FieldsList<T>): Promise<boolean>
   setErrors(errors: ErrorsMapList<T>): void
   hasError(): boolean
   handleSubmit(e: SynteticEvent): void
@@ -141,8 +149,10 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
         onChange: (_, value) => this.onChange(name, value)
       }
 
-      this.fields[name].label = this._options.labelFormatter
-        ? this._options.labelFormatter(this.fields[name])
+      const transformers = this._options.transformers
+
+      this.fields[name].label = transformers && transformers.label
+        ? transformers.label(this.fields[name])
         : name
 
       names.push(name)
@@ -173,15 +183,18 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
     return values as T
   }
 
-  async validate() {
-    this._fieldsNames.forEach(name => this.validateField(name))
+  async validate(fields: FieldsList<T> = this._fieldsNames) {
+    if (typeof fields === 'string') {
+      this.validateField(fields)
+    }
+    else {
+      for (const name of fields)
+        this.validateField(name)
+    }
 
-    const hasErrors = this.hasError()
+    this.updateComponent()
 
-    if (hasErrors)
-      this.updateComponent()
-
-    return !hasErrors
+    return !this.hasError()
   }
 
   setErrors(errors: ErrorsMapList<T>) {
@@ -232,17 +245,19 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
   }
 
   private transformError(field: FieldData, error: any) {
+    const transformers = this._options.transformers
+
     return error
-      ? this._options.transformError
-        ? this._options.transformError(error, field)
+      ? transformers && transformers.error
+        ? transformers.error(error, field)
         : error
       : null
   }
 
   private validateField(fieldName: string) {
     const fieldDef: Field<any, T> = this._fieldsDefs[fieldName]
-    const validateFn = fieldDef.validateFn
-    const warnFn = fieldDef.validateFn
+    const validateFn = fieldDef._validateFn
+    const warnFn = fieldDef._warnFn
     const field = this.fields[fieldName]
 
     if (validateFn)
@@ -250,6 +265,21 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
 
     if (warnFn)
       field.error = this.transformError(field, warnFn(field.value, this))
+
+    // Validate dependent fields
+    const dependent = fieldDef._dependent
+
+    if (dependent) {
+      if (typeof dependent === 'string') {
+        if (this.fields[dependent].touched)
+          this.validateField(dependent)
+      }
+      else {
+        for (const dependentField of dependent)
+          if (this.fields[dependentField].touched)
+            this.validateField(dependentField)
+      }
+    }
   }
 
   private onFocus(fieldName: string) {
@@ -265,13 +295,14 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
   }
 
   private onChange(fieldName: string, value: any) {
-    const fieldOptions: Field<any, T> = this._fieldsDefs[fieldName]
-    if (fieldOptions.onChangeFn)
-      fieldOptions.onChangeFn(value)
-
     const field = this.fields[fieldName]
     field.value = value
     field.dirty = true
+
+    const fieldDef: Field<any, T> = this._fieldsDefs[fieldName]
+
+    if (fieldDef._changedFn)
+      fieldDef._changedFn(value, this)
 
     this.updateComponent()
   }
