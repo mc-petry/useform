@@ -37,6 +37,8 @@ export interface FieldClass<TValue, TFields> {
   changed(fn: ChangedFn<TValue, TFields>): FieldClass<TValue, TFields>
   warn(fn: ValidateFn<TValue, TFields>): FieldClass<TValue, TFields>
   dependent(fields: FieldsList<TFields>): FieldClass<TValue, TFields>
+  validateOnChange(validate: boolean): FieldClass<TValue, TFields>
+  validateOnBlur(validate: boolean): FieldClass<TValue, TFields>
 }
 
 class Field<TValue, TFields> implements FieldClass<TValue, TFields> {
@@ -44,6 +46,8 @@ class Field<TValue, TFields> implements FieldClass<TValue, TFields> {
   _changedFn?: ChangedFn<TValue, TFields>
   _warnFn?: ValidateFn<TValue, TFields>
   _dependent?: FieldsList<TFields>
+  _validateOnChange: boolean = false
+  _validateOnBlur: boolean = true
 
   validate(fn: ValidateFn<TValue, TFields>) {
     this._validateFn = fn
@@ -62,6 +66,16 @@ class Field<TValue, TFields> implements FieldClass<TValue, TFields> {
 
   dependent(fields: FieldsList<TFields>) {
     this._dependent = fields
+    return this
+  }
+
+  validateOnChange(validate: boolean) {
+    this._validateOnChange = validate
+    return this
+  }
+
+  validateOnBlur(validate: boolean) {
+    this._validateOnBlur = validate
     return this
   }
 }
@@ -255,7 +269,7 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
   }
 
   private validateField(fieldName: string) {
-    const fieldDef: Field<any, T> = this._fieldsDefs[fieldName]
+    const fieldDef = this._fieldsDefs[fieldName] as Field<any, T>
     const validateFn = fieldDef._validateFn
     const warnFn = fieldDef._warnFn
     const field = this.fields[fieldName]
@@ -264,7 +278,7 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
       field.error = this.transformError(field, validateFn(field.value, this))
 
     if (warnFn)
-      field.error = this.transformError(field, warnFn(field.value, this))
+      field.warn = this.transformError(field, warnFn(field.value, this))
 
     // Validate dependent fields
     const dependent = fieldDef._dependent
@@ -289,7 +303,10 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
 
   private onBlur(fieldName: string) {
     if (this.fields[fieldName].dirty) {
-      this.validateField(fieldName)
+      const def = this._fieldsDefs[fieldName] as Field<any, T>
+      if (def._validateOnBlur)
+        this.validateField(fieldName)
+
       this.updateComponent()
     }
   }
@@ -299,7 +316,10 @@ class Form<T extends { [key: string]: any }> implements FormClass<T> {
     field.value = value
     field.dirty = true
 
-    const fieldDef: Field<any, T> = this._fieldsDefs[fieldName]
+    const fieldDef = this._fieldsDefs[fieldName] as Field<any, T>
+
+    if (fieldDef._validateOnChange)
+      this.validateField(fieldName)
 
     if (fieldDef._changedFn)
       fieldDef._changedFn(value, this)
