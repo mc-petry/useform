@@ -27,13 +27,13 @@ type FieldsDefs<T> = {
 export type ValidationResult = any
 export type TransformErrorFn = (input: any, field: FieldData) => any
 export type LabelFormatterFn = (field: FieldData) => any
-export type ValidateFn<V, T> = (value: V, form: FormClass<T>) => ValidationResult
+export type ValidateFn<V, T, R = ValidationResult> = (value: V, form: FormClass<T>) => R
 export type ChangedFn<V, T> = (newValue: V, form: FormClass<T>) => void
 export type SubmitFn<T> = (values: T) => void
 export type FieldsList<T> = ReadonlyArray<keyof T> | (keyof T)
 
 export interface FieldClass<TValue, TFields> {
-  validate(fn: ValidateFn<TValue, TFields>): FieldClass<TValue, TFields>
+  validate<TResult = ValidationResult>(fn: ValidateFn<TValue, TFields, TResult>): FieldClass<TValue, TFields>
   changed(fn: ChangedFn<TValue, TFields>): FieldClass<TValue, TFields>
   warn(fn: ValidateFn<TValue, TFields>): FieldClass<TValue, TFields>
   dependent(fields: FieldsList<TFields>): FieldClass<TValue, TFields>
@@ -41,8 +41,10 @@ export interface FieldClass<TValue, TFields> {
   validateOnBlur(validate: boolean): FieldClass<TValue, TFields>
 }
 
+const validateEmpty = () => undefined
+
 class Field<TValue, TFields> implements FieldClass<TValue, TFields> {
-  _validateFn?: ValidateFn<TValue, TFields>
+  _validateFn?: ValidateFn<TValue, TFields> = validateEmpty
   _changedFn?: ChangedFn<TValue, TFields>
   _warnFn?: ValidateFn<TValue, TFields>
   _dependent?: FieldsList<TFields>
