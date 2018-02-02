@@ -11,11 +11,23 @@ describe('form', () => {
     age: number
   }
 
+  // const form = formBuilder<UserDTO>({
+  //   age: {
+  //     validateFn: (value, { fields }) =>
+  //       !value && 'required'
+  //   },
+
+  //   name: {
+  //     validateFn: value => value
+  //   }
+  // })
+
   const form = formBuilder<UserDTO>(field =>
     ({
-      name: field<string>(),
+      name: field()
+        .validate((value, { fields }) => fields.age.value < 0 && 'bad'),
 
-      age: field<number>()
+      age: field()
         .validate(value =>
           (!value && 'required') ||
           (value && value < 18 && 'lessThan18')

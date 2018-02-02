@@ -2,7 +2,7 @@ export interface SynteticEvent {
   preventDefault(): void
 }
 
-export interface FieldData<TValue = any, TName = string> {
+export interface FieldData<TValue = any, TName extends string = string> {
   name: TName
   dirty: boolean
   touched: boolean
@@ -128,7 +128,9 @@ export interface FormModel {
   [key: string]: any
 }
 
-export const formBuilder = <T extends FormModel>(fn: (field: <TValue = any>() => FieldClass<TValue, T>) => FieldsDefs<T>): FormBuilderClassConfigure<T> =>
+export const formBuilder = <T extends FormModel>
+  (fn: (field: <TValue = any>() => FieldClass<TValue, T>) => {[P in keyof T]: FieldClass<T[P], T> }):
+  FormBuilderClassConfigure<T> =>
   new FormBuilder<T>(fn(newField))
 
 export type ErrorsMapList<T> = {
@@ -137,8 +139,13 @@ export type ErrorsMapList<T> = {
   warn?: ValidationResult
 }[]
 
+// [P in keyof T]: FieldData<any, keyof T>
+
 export interface FormClass<T extends FormModel> {
-  readonly fields: Fields<{[P in keyof T]: FieldClass<T[P], T> }>
+  readonly fields: {
+    [P in keyof T]: FieldData<T[P], P>
+  }
+
   setValues(values: Partial<T> | undefined, strict?: boolean): void
   getValues(): T
   validate(fields?: FieldsList<T>): Promise<boolean>
@@ -149,7 +156,9 @@ export interface FormClass<T extends FormModel> {
 }
 
 class Form<T extends FormModel> implements FormClass<T> {
-  readonly fields: Fields<{[P in keyof T]: Field<T[P], T> }>
+  readonly fields: {
+    [P in keyof T]: FieldData<T[P], P>
+  }
   private readonly _fieldsNames: ReadonlyArray<string>
 
   constructor(private readonly _fieldsDefs: FieldsDefs<T>, private readonly _options: FormOptions<T>, private readonly _component: UpdateableComponent) {
