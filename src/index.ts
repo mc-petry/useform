@@ -2,8 +2,8 @@ export interface SynteticEvent {
   preventDefault(): void
 }
 
-export interface FieldData<TValue = any> {
-  name: string
+export interface FieldData<TValue = any, TName = string> {
+  name: TName
   dirty: boolean
   touched: boolean
   value?: TValue
@@ -17,7 +17,7 @@ export interface FieldData<TValue = any> {
 }
 
 export type Fields<T> = {
-  [P in keyof T]: FieldData<any>
+  [P in keyof T]: FieldData<any, keyof T>
 }
 
 type FieldsDefs<T> = {
@@ -25,8 +25,6 @@ type FieldsDefs<T> = {
 }
 
 export type ValidationResult = any
-export type TransformErrorFn = (input: any, field: FieldData) => any
-export type LabelFormatterFn = (field: FieldData) => any
 export type ValidateFn<V, T, R = ValidationResult> = (value: V, form: FormClass<T>) => R
 export type ChangedFn<V, T> = (newValue: V, form: FormClass<T>) => void
 export type SubmitFn<T> = (values: T) => void
@@ -89,14 +87,14 @@ interface UpdateableComponent {
   forceUpdate(): void
 }
 
-export interface FormTransformers {
-  error?: (input: any, field: FieldData) => any
-  label?: (field: FieldData) => any
+export interface FormTransformers<T> {
+  error?: (input: any, field: FieldData<any, keyof T>) => any
+  label?: (field: FieldData<any, keyof T>) => any
 }
 
 export interface FormOptions<T> {
   submit?: SubmitFn<T>
-  transformers?: FormTransformers
+  transformers?: FormTransformers<T>
 }
 
 export interface FormBuilderClassConfigure<T> extends FormBuilderClass<T> {
@@ -126,7 +124,11 @@ class FormBuilder<T> implements
   }
 }
 
-export const formBuilder = <T extends { [key: string]: any }>(fn: (field: <TValue = any>() => FieldClass<TValue, T>) => FieldsDefs<T>): FormBuilderClassConfigure<T> =>
+export interface FormModel {
+  [key: string]: any
+}
+
+export const formBuilder = <T extends FormModel>(fn: (field: <TValue = any>() => FieldClass<TValue, T>) => FieldsDefs<T>): FormBuilderClassConfigure<T> =>
   new FormBuilder<T>(fn(newField))
 
 export type ErrorsMapList<T> = {
@@ -135,17 +137,18 @@ export type ErrorsMapList<T> = {
   warn?: ValidationResult
 }[]
 
-export interface FormClass<T extends { [key: string]: any }> {
+export interface FormClass<T extends FormModel> {
   readonly fields: Fields<{[P in keyof T]: FieldClass<T[P], T> }>
   setValues(values: Partial<T> | undefined, strict?: boolean): void
   getValues(): T
   validate(fields?: FieldsList<T>): Promise<boolean>
   setErrors(errors: ErrorsMapList<T>): void
   hasError(): boolean
+  hasWarn(): boolean
   handleSubmit(e: SynteticEvent): void
 }
 
-class Form<T extends { [key: string]: any }> implements FormClass<T> {
+class Form<T extends FormModel> implements FormClass<T> {
   readonly fields: Fields<{[P in keyof T]: Field<T[P], T> }>
   private readonly _fieldsNames: ReadonlyArray<string>
 
