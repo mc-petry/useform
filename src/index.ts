@@ -365,7 +365,12 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
   private onBlur(fieldName: string) {
     if (this.fields[fieldName].dirty) {
       const def = this._fieldDefs[fieldName] as FieldDef<any, T>
-      if (def.validateOnBlur)
+
+      const validateOnBlur = def.validateOnBlur != null
+        ? def.validateOnBlur
+        : this._options.validateOnBlur!
+
+      if (validateOnBlur)
         this.validateField(fieldName)
 
       this.updateComponent()
@@ -379,8 +384,9 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
 
     const fieldDef = this._fieldDefs[fieldName] as FieldDef<any, T>
 
-    if (fieldDef.validateOnChange)
-      this.validateField(fieldName)
+    const validateOnChange = fieldDef.validateOnChange != null
+      ? fieldDef.validateOnChange
+      : this._options.validateOnChange
 
     if (fieldDef.changed)
       fieldDef.changed(value, this)
