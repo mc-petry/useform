@@ -1,137 +1,122 @@
-export interface SynteticEvent {
-  preventDefault(): void
-}
-
 export interface FieldData<TValue = any, TName extends string = string> {
   name: TName
+
+  /**
+   * Gets a value that indicates whether a field value changed
+   */
   dirty: boolean
+
+  /**
+   * Gets a value that indicated whether a field had a focus
+   */
   touched: boolean
+
+  /**
+   * Gets field current value
+   */
   value?: TValue
+
+  /**
+   * Gets current field error
+   */
   error: any
+
+  /**
+   * Gets current field warning
+   */
   warn: any
+
+  /**
+   * Gets current field label
+   * Use `transformers` to define field labels
+   */
   label?: any
 
-  onFocus: (e: SynteticEvent) => void
-  onBlur: (e: SynteticEvent) => void
-  onChange: (e: SynteticEvent, value: TValue) => void
+  onFocus: () => void
+  onBlur: () => void
+  onChange: (value: TValue) => void
 }
 
-export type Fields<T> = {
-  [P in keyof T]: FieldData<any, keyof T>
+export interface FieldDef<TValue, TFields, TValidationResult = ValidationResult> {
+  /**
+   * Validate specific field
+   */
+  validate?: ValidateFn<TValue, TFields, TValidationResult>
+
+  /**
+   * Same as `validate` but does not block form submission
+   */
+  warn?: ValidateFn<TValue, TFields, TValidationResult>
+
+  /**
+   * Calls after value changed
+   */
+  changed?: ChangedFn<TValue, TFields>
+
+  /**
+   * Dependent fields that must be validated after this field
+   */
+  dependent?: FieldsList<TFields>
+
+  /**
+   * Override default form behaviour for specific field
+   */
+  validateOnChange?: boolean
+
+  /**
+   * Override default form behaviour for specific field
+   */
+  validateOnBlur?: boolean
 }
 
-type FieldsDefs<T> = {
-  [P in keyof T]: FieldClass<T[P], T>;
-}
-
+export interface SynteticEvent { preventDefault(): void }
+export interface ReactComponent { forceUpdate(): void }
 export type ValidationResult = any
-export type ValidateFn<V, T, R = ValidationResult> = (value: V, form: FormClass<T>) => R
+export type ValidateFn<V, T, R> = (value: V, form: FormClass<T>) => R
 export type ChangedFn<V, T> = (newValue: V, form: FormClass<T>) => void
 export type SubmitFn<T> = (values: T) => void
 export type FieldsList<T> = ReadonlyArray<keyof T> | (keyof T)
+export type FieldsDefs<T, TValidationResult> = { [P in keyof T]: FieldDef<T[P], T, TValidationResult> }
 
-export interface FieldClass<TValue, TFields> {
-  validate<TResult = ValidationResult>(fn: ValidateFn<TValue, TFields, TResult>): FieldClass<TValue, TFields>
-  changed(fn: ChangedFn<TValue, TFields>): FieldClass<TValue, TFields>
-  warn(fn: ValidateFn<TValue, TFields>): FieldClass<TValue, TFields>
-  dependent(fields: FieldsList<TFields>): FieldClass<TValue, TFields>
-  validateOnChange(validate: boolean): FieldClass<TValue, TFields>
-  validateOnBlur(validate: boolean): FieldClass<TValue, TFields>
-}
+export interface FormTransformers<T, TValidationResult> {
+  /**
+   * Transform fields errors
+   */
+  error?: (error: TValidationResult, field: FieldData<any, keyof T>) => any
 
-const validateEmpty = () => undefined
-
-class Field<TValue, TFields> implements FieldClass<TValue, TFields> {
-  _validateFn?: ValidateFn<TValue, TFields> = validateEmpty
-  _changedFn?: ChangedFn<TValue, TFields>
-  _warnFn?: ValidateFn<TValue, TFields>
-  _dependent?: FieldsList<TFields>
-  _validateOnChange: boolean = false
-  _validateOnBlur: boolean = true
-
-  validate(fn: ValidateFn<TValue, TFields>) {
-    this._validateFn = fn
-    return this
-  }
-
-  changed(fn: ChangedFn<TValue, TFields>) {
-    this._changedFn = fn
-    return this
-  }
-
-  warn(fn: ValidateFn<TValue, TFields>) {
-    this._warnFn = fn
-    return this
-  }
-
-  dependent(fields: FieldsList<TFields>) {
-    this._dependent = fields
-    return this
-  }
-
-  validateOnChange(validate: boolean) {
-    this._validateOnChange = validate
-    return this
-  }
-
-  validateOnBlur(validate: boolean) {
-    this._validateOnBlur = validate
-    return this
-  }
-}
-
-const newField = <TValue, TField>() =>
-  new Field<TValue, TField>()
-
-interface UpdateableComponent {
-  forceUpdate(): void
-}
-
-export interface FormTransformers<T> {
-  error?: (input: any, field: FieldData<any, keyof T>) => any
+  /**
+   * Define fields labels
+   */
   label?: (field: FieldData<any, keyof T>) => any
 }
 
-export interface FormOptions<T> {
+export interface FormOptions<T, TValidationResult> {
+  /**
+   * Submission handler. Will not be called if there are errors
+   */
   submit?: SubmitFn<T>
-  transformers?: FormTransformers<T>
-}
 
-export interface FormBuilderClassConfigure<T> extends FormBuilderClass<T> {
-  configure(options: FormOptions<T>): FormBuilderClass<T>
-}
+  /**
+   * Form transformers
+   */
+  transformers?: FormTransformers<T, TValidationResult>
 
-export interface FormBuilderClass<T> {
-  build(component: { forceUpdate(): void }): FormClass<T>
-}
+  /**
+   * Default form behaviour
+   * @default false
+   */
+  validateOnChange?: boolean
 
-class FormBuilder<T> implements
-  FormBuilderClass<T>,
-  FormBuilderClassConfigure<T>
-{
-  private _options: FormOptions<T> = {}
-
-  constructor(private _fieldsDefs: FieldsDefs<T>) {
-  }
-
-  configure(options: FormOptions<T>) {
-    this._options = options
-    return this
-  }
-
-  build(component: UpdateableComponent) {
-    return new Form<T>(this._fieldsDefs, this._options, component)
-  }
+  /**
+   * Default form behaviour
+   * @default true
+   */
+  validateOnBlur?: boolean
 }
 
 export interface FormModel {
   [key: string]: any
 }
-
-export const formBuilder = <T extends FormModel>
-  (fn: (field: <TValue = any>() => FieldClass<TValue, T>) => {[P in keyof T]: FieldClass<T[P], T> }):
-  FormBuilderClassConfigure<T> =>
-  new FormBuilder<T>(fn(newField))
 
 export type ErrorsMapList<T> = {
   field: keyof T
@@ -139,33 +124,95 @@ export type ErrorsMapList<T> = {
   warn?: ValidationResult
 }[]
 
-// [P in keyof T]: FieldData<any, keyof T>
+export type Fields<T> = {
+  [P in keyof T]-?: FieldData<T[P], P>
+}
 
 export interface FormClass<T extends FormModel> {
-  readonly fields: {
-    [P in keyof T]: FieldData<T[P], P>
-  }
+  readonly fields: Fields<T>
 
+  /**
+   * Sets form values
+   *
+   * @param values New form values
+   * @param strict Validate that all fields exists in form. Default `true`
+   * @
+   */
   setValues(values: Partial<T> | undefined, strict?: boolean): void
+
+  /**
+   * Gets current form values
+   */
   getValues(): T
+
+  /**
+   * Validates specific field(s)
+   */
   validate(fields?: FieldsList<T>): Promise<boolean>
+
+  /**
+   * Sets errors and warnings for specific field(s)
+   */
   setErrors(errors: ErrorsMapList<T>): void
+
+  /**
+   * Gets a value that indicates whether the form has error
+   */
   hasError(): boolean
+
+  /**
+   * Gets a value that indicates whether the form has warning
+   */
   hasWarn(): boolean
+
+  /**
+   * Handle form submit. Typically should be passed into `<form>`
+   */
   handleSubmit(e: SynteticEvent): void
 }
 
-class Form<T extends FormModel> implements FormClass<T> {
-  readonly fields: {
-    [P in keyof T]: FieldData<T[P], P>
-  }
+/**
+ * Build form component
+ *
+ * Generic `T` - form model. Usefull to use your DTO object
+ * Generic `TValidationResult` - Usefull to define strict validation result
+ */
+export const formBuilder = <T extends FormModel, TValidationResult = ValidationResult>(fieldDefs: FieldsDefs<T, TValidationResult>) => ({
+  /**
+   * Configure form options
+   */
+  configure: (options: FormOptions<T, TValidationResult>) => ({
+
+    /**
+     * React component to update
+     * Typically you should pass `this` if form defined inside React component
+     */
+    build: (component: ReactComponent): FormClass<T> =>
+      new Form(fieldDefs, {
+        // Predefined config values:
+        validateOnChange: false,
+        validateOnBlur: true,
+        ...options
+      }, component)
+  })
+})
+
+class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
+  private readonly _fieldDefs: FieldsDefs<T, TValidationResult>
+  private readonly _options: FormOptions<T, TValidationResult>
+  private readonly _component: ReactComponent
+  readonly fields: Fields<T>
   private readonly _fieldsNames: ReadonlyArray<string>
 
-  constructor(private readonly _fieldsDefs: FieldsDefs<T>, private readonly _options: FormOptions<T>, private readonly _component: UpdateableComponent) {
+  constructor(fieldDefs: FieldsDefs<T, TValidationResult>, options: FormOptions<T, TValidationResult>, component: ReactComponent) {
+    this._fieldDefs = fieldDefs
+    this._options = options
+    this._component = component
+
     this.fields = {} as any
     const names: string[] = []
 
-    for (const name of Object.keys(this._fieldsDefs)) {
+    for (const name of Object.keys(this._fieldDefs)) {
       this.fields[name] = {
         name,
         dirty: false,
@@ -174,7 +221,7 @@ class Form<T extends FormModel> implements FormClass<T> {
         warn: null,
         onFocus: () => this.onFocus(name),
         onBlur: () => this.onBlur(name),
-        onChange: (_, value) => this.onChange(name, value)
+        onChange: value => this.onChange(name, value)
       }
 
       const transformers = this._options.transformers
@@ -283,9 +330,9 @@ class Form<T extends FormModel> implements FormClass<T> {
   }
 
   private validateField(fieldName: string) {
-    const fieldDef = this._fieldsDefs[fieldName] as Field<any, T>
-    const validateFn = fieldDef._validateFn
-    const warnFn = fieldDef._warnFn
+    const fieldDef = this._fieldDefs[fieldName] as FieldDef<any, T>
+    const validateFn = fieldDef.validate
+    const warnFn = fieldDef.warn
     const field = this.fields[fieldName]
 
     if (validateFn)
@@ -295,7 +342,7 @@ class Form<T extends FormModel> implements FormClass<T> {
       field.warn = this.transformError(field, warnFn(field.value, this))
 
     // Validate dependent fields
-    const dependent = fieldDef._dependent
+    const dependent = fieldDef.dependent
 
     if (dependent) {
       if (typeof dependent === 'string') {
@@ -317,8 +364,8 @@ class Form<T extends FormModel> implements FormClass<T> {
 
   private onBlur(fieldName: string) {
     if (this.fields[fieldName].dirty) {
-      const def = this._fieldsDefs[fieldName] as Field<any, T>
-      if (def._validateOnBlur)
+      const def = this._fieldDefs[fieldName] as FieldDef<any, T>
+      if (def.validateOnBlur)
         this.validateField(fieldName)
 
       this.updateComponent()
@@ -330,13 +377,13 @@ class Form<T extends FormModel> implements FormClass<T> {
     field.value = value
     field.dirty = true
 
-    const fieldDef = this._fieldsDefs[fieldName] as Field<any, T>
+    const fieldDef = this._fieldDefs[fieldName] as FieldDef<any, T>
 
-    if (fieldDef._validateOnChange)
+    if (fieldDef.validateOnChange)
       this.validateField(fieldName)
 
-    if (fieldDef._changedFn)
-      fieldDef._changedFn(value, this)
+    if (fieldDef.changed)
+      fieldDef.changed(value, this)
 
     this.updateComponent()
   }

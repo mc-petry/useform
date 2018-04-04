@@ -1,4 +1,4 @@
-import { formBuilder, SynteticEvent } from '../'
+import { SynteticEvent, formBuilder } from '../'
 
 const synteticEvent: SynteticEvent = {
   // tslint:disable-next-line:no-empty
@@ -9,38 +9,39 @@ describe('form', () => {
   interface UserDTO {
     name: string
     age: number
+    gender?: boolean
   }
 
-  // const form = formBuilder<UserDTO>({
-  //   age: {
-  //     validateFn: (value, { fields }) =>
-  //       !value && 'required'
-  //   },
+  const form = formBuilder<UserDTO, { id: string } | string>(
+    {
+      name: {
+        validate: (value, { fields }) => fields.age.value < 0 && 'bad',
+      },
 
-  //   name: {
-  //     validateFn: value => value
-  //   }
-  // })
-
-  const form = formBuilder<UserDTO>(field =>
-    ({
-      name: field()
-        .validate((value, { fields }) => fields.age.value < 0 && 'bad'),
-
-      age: field()
-        .validate(value =>
+      age: {
+        validate: value =>
           (!value && 'required') ||
-          (value && value < 18 && 'lessThan18')
-        )
-    }))
-    .configure({
+          (value < 18 && 'lessThan18')
+      },
 
-    })
-    .build({
-      forceUpdate: () => {
-        // TODO
+      gender: {
+        validate: value =>
+          !value && ({ id: 'extended' })
       }
     })
+    .configure({
+      submit: () => { },
+      transformers: {
+        label: field => field.name,
+        error: (error, field) => typeof error !== 'string' ? error.id : error
+      }
+    })
+    // tslint:disable-next-line:no-empty
+    .build({ forceUpdate: () => { } })
+
+  test('common', () => {
+    expect(form.fields.gender.name).toBe('gender')
+  })
 
   test('validate', () => {
     form.setValues({ age: 17 })

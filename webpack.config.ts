@@ -5,6 +5,8 @@ import * as CleanWebpackPlugin from 'clean-webpack-plugin'
 const outputDir = path.join(__dirname, 'dist')
 
 const config: webpack.Configuration = {
+  mode: 'production',
+
   entry: {
     index: './src'
   },
