@@ -3,26 +3,36 @@ export interface FieldData<TValue = any, TName extends string = string> {
 
   /**
    * Gets a value that indicates whether a field value changed
+   *
+   * @default false
    */
   dirty: boolean
 
   /**
    * Gets a value that indicated whether a field had a focus
+   *
+   * @default false
    */
   touched: boolean
 
   /**
    * Gets field current value
+   *
+   * @default undefined
    */
   value?: TValue
 
   /**
    * Gets current field error
+   *
+   * @default null
    */
   error: any
 
   /**
    * Gets current field warning
+   *
+   * @default null
    */
   warn: any
 
@@ -30,7 +40,7 @@ export interface FieldData<TValue = any, TName extends string = string> {
    * Gets current field label
    * Use `transformers` to define field labels
    */
-  label?: any
+  label: any
 
   onFocus: () => void
   onBlur: () => void
@@ -103,12 +113,14 @@ export interface FormOptions<T, TValidationResult> {
 
   /**
    * Default form behaviour
+   *
    * @default false
    */
   validateOnChange?: boolean
 
   /**
-   * Default form behaviour
+   * Default form behaviour. Keep in mind that pristine (not dirty) fields will not be validated
+   *
    * @default true
    */
   validateOnBlur?: boolean
@@ -136,7 +148,6 @@ export interface FormClass<T extends FormModel> {
    *
    * @param values New form values
    * @param strict Validate that all fields exists in form. Default `true`
-   * @
    */
   setValues(values: Partial<T> | undefined, strict?: boolean): void
 
@@ -201,30 +212,33 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
   private readonly _fieldDefs: FieldsDefs<T, TValidationResult>
   private readonly _options: FormOptions<T, TValidationResult>
   private readonly _component: ReactComponent
-  readonly fields: Fields<T>
   private readonly _fieldsNames: ReadonlyArray<string>
+
+  readonly fields: Fields<T>
 
   constructor(fieldDefs: FieldsDefs<T, TValidationResult>, options: FormOptions<T, TValidationResult>, component: ReactComponent) {
     this._fieldDefs = fieldDefs
     this._options = options
     this._component = component
-
     this.fields = {} as any
+
     const names: string[] = []
+    const transformers = this._options.transformers
 
     for (const name of Object.keys(this._fieldDefs)) {
+
       this.fields[name] = {
         name,
+        label: undefined,
         dirty: false,
         touched: false,
         error: null,
         warn: null,
+
         onFocus: () => this.onFocus(name),
         onBlur: () => this.onBlur(name),
         onChange: value => this.onChange(name, value)
       }
-
-      const transformers = this._options.transformers
 
       this.fields[name].label = transformers && transformers.label
         ? transformers.label(this.fields[name])
@@ -363,18 +377,19 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
   }
 
   private onBlur(fieldName: string) {
-    if (this.fields[fieldName].dirty) {
-      const def = this._fieldDefs[fieldName] as FieldDef<any, T>
+    if (!this.fields[fieldName].dirty)
+      return
 
-      const validateOnBlur = def.validateOnBlur != null
-        ? def.validateOnBlur
-        : this._options.validateOnBlur!
+    const def = this._fieldDefs[fieldName] as FieldDef<any, T>
 
-      if (validateOnBlur)
-        this.validateField(fieldName)
+    const validateOnBlur = def.validateOnBlur != null
+      ? def.validateOnBlur
+      : this._options.validateOnBlur!
 
-      this.updateComponent()
-    }
+    if (validateOnBlur)
+      this.validateField(fieldName)
+
+    this.updateComponent()
   }
 
   private onChange(fieldName: string, value: any) {
