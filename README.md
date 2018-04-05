@@ -2,8 +2,11 @@
 
 # Forms builder
 
-[![npm version](https://badge.fury.io/js/forms-builder.svg)](https://badge.fury.io/js/forms-builder)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[![npm](https://img.shields.io/npm/v/forms-builder.svg)](https://www.npmjs.com/package/forms-builder)
+[![Travis](https://img.shields.io/travis/mc-petry/forms-builder.svg)](https://travis-ci.org/mc-petry/forms-builder)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
+
 
 ## Overview
 

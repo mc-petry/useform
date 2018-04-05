@@ -1,6 +1,6 @@
 {
   "name": "forms-builder",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Forms builder library. Nice to use it anywere! Especially with react.",
   "main": "dist/index.js",
   "typings": "dist/index",
