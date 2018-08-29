@@ -45,7 +45,7 @@ describe('simple form', () => {
   const { fields } = form
 
   test('initial field state', () => {
-    const { onBlur, onChange, onFocus, ...state } = fields.nick
+    const { onBlur, onChange, onFocus, fieldRef, ...state } = fields.nick
     const compare: typeof state = {
       name: 'nick',
       label: 'nick',

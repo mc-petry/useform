@@ -1,31 +1,33 @@
 {
   "name": "forms-builder",
-  "version": "0.3.2",
-  "description": "Forms builder library. Nice to use it anywere! Especially with react.",
+  "version": "0.4.1",
+  "description": "Simple and powerful forms for react",
   "main": "dist/index.js",
   "typings": "dist/index",
-  "dependencies": {},
+  "peerDependencies": {
+    "react": "^16.3.0"
+  },
   "devDependencies": {
     "@types/jest": "^22.2.2",
-    "@types/node": "^9.6.1",
-    "clean-webpack-plugin": "^0.1.19",
+    "@types/node": "^10.5.7",
+    "@types/react": "^16.4.8",
     "cross-env": "^5.1.4",
     "jest": "^22.4.3",
     "npm-run-all": "^4.1.2",
-    "redux": "^3.7.2",
+    "react": "^16.4.2",
     "rimraf": "^2.6.2",
     "ts-jest": "^22.4.2",
-    "ts-loader": "^4.1.0",
-    "ts-node": "^5.0.1",
-    "tslint": "^5.9.1",
-    "typescript": "^2.8.1",
-    "webpack": "^4.4.1",
-    "webpack-cli": "^2.0.13"
+    "ts-loader": "^4.4.2",
+    "ts-node": "^7.0.0",
+    "tslint": "^5.11.0",
+    "typescript": "^3.0.1"
   },
   "scripts": {
     "test": "jest",
-    "build": "webpack -p",
-    "watch": "webpack -w --progress",
+    "clean": "rimraf dist",
+    "compile": "tsc -p tsconfig.json",
+    "build": "run-s clean compile",
+    "watch": "tsc -w",
     "prepare": "run-s build test"
   },
   "repository": {
@@ -33,7 +35,8 @@
     "url": "git+https://github.com/mc-petry/forms-builder.git"
   },
   "keywords": [
-    "redux"
+    "react",
+    "forms"
   ],
   "author": "mc-petry",
   "license": "MIT",
