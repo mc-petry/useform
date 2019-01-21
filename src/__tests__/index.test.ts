@@ -96,7 +96,7 @@ describe('form transformers', () => {
     err2: string
   }
 
-  const form = formBuilder<FormFields, { id: string } | string>(
+  const form = formBuilder<FormFields, { id: string } | string | false>(
     {
       err1: {
         validate: value => !value && 'test1'

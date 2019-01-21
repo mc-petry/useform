@@ -210,6 +210,11 @@ export interface FormClass<T extends FormModel> {
    * Handle form submit. Typically should be passed into `<form>`
    */
   handleSubmit(e: SynteticEvent): void
+
+  /**
+   * Gets a value that indicates whether the form was touched
+   */
+  touched(): boolean
 }
 
 /**
@@ -371,6 +376,19 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
     }
 
     return hasWarn
+  }
+
+  touched() {
+    let touched = false
+
+    for (const name of this._fieldsNames) {
+      if (this.fields[name].touched) {
+        touched = true
+        break
+      }
+    }
+
+    return touched
   }
 
   focusInvalidField() {
