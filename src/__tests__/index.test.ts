@@ -1,12 +1,6 @@
-import { SynteticEvent, formBuilder } from '../'
+import { formBuilder } from '../'
 
-// tslint:disable-next-line:no-empty
-const fakeReactComponent = { forceUpdate: () => { } }
-
-const synteticEvent: SynteticEvent = {
-  // tslint:disable-next-line:no-empty
-  preventDefault: () => { }
-}
+const fakeReactComponent = { forceUpdate: () => ({}) }
 
 describe('simple form', () => {
   interface UserDTO {
@@ -16,7 +10,6 @@ describe('simple form', () => {
     gender?: boolean
   }
 
-  // , { id: string } | string
   const form = formBuilder<UserDTO>(
     {
       nick: {
@@ -127,5 +120,32 @@ describe('form transformers', () => {
 
   test('label', () => {
     expect(fields.err1.label).toBe(`my-${fields.err1.name}`)
+  })
+})
+
+describe('form renders', () => {
+  let renderCount = 1
+  const localFakeReactComponent = { forceUpdate: () => { renderCount++ } }
+
+  const form = formBuilder({})
+    .configure({})
+    .build(localFakeReactComponent)
+
+  test('set values', () => {
+    form.setValues({
+      name: 'alex'
+    }, false)
+
+    expect(renderCount).toBe(1)
+
+    expect(() => {
+      form.setValues({
+        name: 'mick'
+      }, true)
+    }).toThrow()
+
+    form.setValues({ name: 'ivan' }, { update: true })
+
+    expect(renderCount).toBe(2)
   })
 })

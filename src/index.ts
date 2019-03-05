@@ -170,6 +170,19 @@ type Fields<T> = {
   [P in keyof T]-?: Mutable<FieldData<T[P], Extract<P, string>>>
 }
 
+interface SetValuesFnOptions {
+  /**
+   * Validate that all fields exists in form.
+   * @default true
+   */
+  strict?: boolean
+  /**
+   * Force update component.
+   * @default false
+   */
+  update?: boolean
+}
+
 export interface FormClass<T extends FormModel> {
   readonly fields: Fields<T>
 
@@ -177,9 +190,9 @@ export interface FormClass<T extends FormModel> {
    * Sets form values
    *
    * @param values New form values
-   * @param strict Validate that all fields exists in form. Default `true`
+   * @param options
    */
-  setValues(values: Partial<T> | undefined, strict?: boolean): void
+  setValues(values: Partial<T> | undefined, options?: boolean | SetValuesFnOptions): void
 
   /**
    * Gets current form values
@@ -289,9 +302,20 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
     this._fieldsNames = names
   }
 
-  setValues(values: Partial<T> | undefined, strict = true) {
+  setValues(values: Partial<T> | undefined, options?: boolean | SetValuesFnOptions) {
     if (!values)
       return
+
+    let strict: boolean | undefined = true
+    let update
+
+    if (typeof options === 'boolean') {
+      strict = options
+    }
+    else if (typeof options !== 'undefined') {
+      strict = options.strict
+      update = options.update
+    }
 
     for (const name of Object.keys(values)) {
       if (!this.fields[name])
@@ -302,6 +326,9 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
 
       this.fields[name].value = values[name]
     }
+
+    if (update)
+      this._component.forceUpdate()
   }
 
   getValues(): T {
