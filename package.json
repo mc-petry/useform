@@ -1,6 +1,6 @@
 {
   "name": "forms-builder",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Simple and powerful forms for react",
   "main": "dist/index.js",
   "typings": "dist/index",

@@ -9,7 +9,7 @@
     "jsx": "react",
     "lib": [
       "dom",
-      "es2015"
+      "es2016"
     ],
     "outDir": "./dist",
     "types": []
