@@ -12,20 +12,6 @@ export interface FieldComponent {
   focus?(): boolean
 }
 
-class Q {
-  render() {
-    return 0
-  }
-}
-
-export interface Test {
-  test?(): void
-}
-
-export class Test extends Q {
-
-}
-
 export interface FieldData<TValue = any, TName = string> {
   readonly name: TName
 
@@ -115,7 +101,7 @@ type ValidationResult = any
 type ValidateFn<V, T, R> = (value: V, form: FormClass<T>) => R
 type ChangedFn<V, T> = (newValue: V, form: FormClass<T>) => void
 type SubmitFn<T> = (values: T) => void
-type FieldsList<T> = ReadonlyArray<Extract<keyof T, string>> | (Extract<keyof T, string>)
+type FieldsList<T> = Array<Extract<keyof T, string>> | (Extract<keyof T, string>)
 type FieldsDefs<T, TValidationResult> = { [P in keyof T]: FieldDef<T[P], T, TValidationResult> }
 
 export interface FormTransformers<T, TValidationResult> {
@@ -170,6 +156,24 @@ type Fields<T> = {
   [P in keyof T]-?: Mutable<FieldData<T[P], Extract<P, string>>>
 }
 
+interface SetValuesFnOptions {
+  /**
+   * Validate that all fields exists in form.
+   * @default true
+   */
+  strict?: boolean
+  /**
+   * Force update component.
+   * @default false
+   */
+  update?: boolean
+}
+
+interface AddFieldFnArgs {
+  name: string
+  fieldDef?: FieldDef<any, any, any>
+}
+
 export interface FormClass<T extends FormModel> {
   readonly fields: Fields<T>
 
@@ -177,9 +181,14 @@ export interface FormClass<T extends FormModel> {
    * Sets form values
    *
    * @param values New form values
-   * @param strict Validate that all fields exists in form. Default `true`
+   * @param options
    */
-  setValues(values: Partial<T> | undefined, strict?: boolean): void
+  setValues(values: Partial<T> | undefined, options?: boolean | SetValuesFnOptions): void
+
+  /**
+   * Assign a field dynamically
+   */
+  addField(args: AddFieldFnArgs): void
 
   /**
    * Gets current form values
@@ -247,8 +256,8 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
   private readonly _fieldDefs: FieldsDefs<T, TValidationResult>
   private readonly _options: FormOptions<T, TValidationResult>
   private readonly _component: ReactComponent
-  private readonly _fieldsNames: ReadonlyArray<string>
   private readonly _fieldsComponents: { [P in keyof T]: FieldComponent | null } = {} as any
+  private _fieldsNames: Array<string> = []
 
   readonly fields: Fields<T>
 
@@ -258,40 +267,25 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
     this._component = component
     this.fields = {} as any
 
-    const names: string[] = []
-    const transformers = this._options.transformers
-
-    for (const name of Object.keys(this._fieldDefs)) {
-
-      const field = this.fields[name] = {
-        name,
-        label: undefined,
-        dirty: false,
-        touched: false,
-        error: null,
-        warn: null,
-        value: undefined,
-
-        onFocus: () => this.onFocus(name),
-        onBlur: () => this.onBlur(name),
-        onChange: value => this.onChange(name, value),
-
-        fieldRef: (instance: FieldComponent | null) => this._fieldsComponents[name] = instance
-      }
-
-      field.label = transformers && transformers.label
-        ? transformers.label(this.fields[name as keyof T])
-        : name
-
-      names.push(name)
+    for (const name of Object.keys(fieldDefs)) {
+      this.addField({ name })
     }
-
-    this._fieldsNames = names
   }
 
-  setValues(values: Partial<T> | undefined, strict = true) {
+  setValues(values: Partial<T> | undefined, options?: boolean | SetValuesFnOptions) {
     if (!values)
       return
+
+    let strict: boolean | undefined = true
+    let update
+
+    if (typeof options === 'boolean') {
+      strict = options
+    }
+    else if (typeof options !== 'undefined') {
+      strict = options.strict
+      update = options.update
+    }
 
     for (const name of Object.keys(values)) {
       if (!this.fields[name])
@@ -302,6 +296,9 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
 
       this.fields[name].value = values[name]
     }
+
+    if (update)
+      this._component.forceUpdate()
   }
 
   getValues(): T {
@@ -401,6 +398,37 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
         if (component && component.focus && component.focus())
           return
       }
+    }
+  }
+
+  addField({ name, fieldDef }: AddFieldFnArgs) {
+    const transformers = this._options.transformers
+
+    const field = this.fields[name] = {
+      name,
+      label: undefined,
+      dirty: false,
+      touched: false,
+      error: null,
+      warn: null,
+      value: undefined,
+
+      onFocus: () => this.onFocus(name),
+      onBlur: () => this.onBlur(name),
+      onChange: value => this.onChange(name, value),
+
+      fieldRef: (instance: FieldComponent | null) => this._fieldsComponents[name] = instance
+    }
+
+    field.label = transformers && transformers.label
+      ? transformers.label(this.fields[name as keyof T])
+      : name
+
+    if (!this._fieldsNames.includes(name)) {
+      this._fieldsNames.push(name)
+
+      if (fieldDef)
+        this._fieldDefs[name] = fieldDef
     }
   }
 

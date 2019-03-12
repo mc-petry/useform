@@ -1,12 +1,6 @@
-import { SynteticEvent, formBuilder } from '../'
+import { formBuilder } from '../'
 
-// tslint:disable-next-line:no-empty
-const fakeReactComponent = { forceUpdate: () => { } }
-
-const synteticEvent: SynteticEvent = {
-  // tslint:disable-next-line:no-empty
-  preventDefault: () => { }
-}
+const fakeReactComponent = { forceUpdate: () => ({}) }
 
 describe('simple form', () => {
   interface UserDTO {
@@ -16,7 +10,6 @@ describe('simple form', () => {
     gender?: boolean
   }
 
-  // , { id: string } | string
   const form = formBuilder<UserDTO>(
     {
       nick: {
@@ -109,7 +102,7 @@ describe('form transformers', () => {
     .configure({
       transformers: {
         label: field => `my-${field.name}`,
-        error: (error, field) => typeof error === 'object'
+        error: (error, _field) => typeof error === 'object'
           ? { map: error.id }
           : { map: error }
       }
@@ -127,5 +120,94 @@ describe('form transformers', () => {
 
   test('label', () => {
     expect(fields.err1.label).toBe(`my-${fields.err1.name}`)
+  })
+})
+
+describe('form renders', () => {
+  let renderCount = 1
+  const localFakeReactComponent = { forceUpdate: () => { renderCount++ } }
+
+  const form = formBuilder({})
+    .configure({})
+    .build(localFakeReactComponent)
+
+  test('set values', () => {
+    form.setValues({
+      name: 'alex'
+    }, false)
+
+    expect(renderCount).toBe(1)
+
+    expect(() => {
+      form.setValues({
+        name: 'mick'
+      }, true)
+    }).toThrow()
+
+    form.setValues({ name: 'ivan' }, { update: true })
+
+    expect(renderCount).toBe(2)
+  })
+})
+
+describe('form dynamic fields', () => {
+  const localFakeReactComponent = { forceUpdate: () => ({}) }
+
+  const form = formBuilder({})
+    .configure({})
+    .build(localFakeReactComponent)
+
+  test('assign a field dynamically', () => {
+    expect(form.fields).toEqual({})
+
+    form.addField({
+      name: 'email',
+      fieldDef: {
+        validate: value => !value && 'require'
+      }
+    })
+
+    const { onBlur, onChange, onFocus, fieldRef, ...state } = (form.fields as any).email
+    const compare: typeof state = {
+      name: 'email',
+      label: 'email',
+      dirty: false,
+      touched: false,
+      value: undefined,
+      error: null,
+      warn: null
+    }
+
+    expect(state).toEqual(compare)
+  })
+
+  test('validation result - lastName value require', () => {
+    form.addField({
+      name: 'lastName',
+      fieldDef: {
+        validate: value => !value && 'require'
+      }
+    })
+
+    form.validate()
+
+    expect((form.fields as any).lastName.error).toEqual('require')
+  })
+
+  test('validation result - everything is ok', async () => {
+    form.addField({
+      name: 'lastName',
+      fieldDef: {
+        validate: value => !value && 'require'
+      }
+    })
+
+    form.setValues({
+      lastName: 'Downey'
+    })
+
+    form.validate()
+
+    expect((form.fields as any).lastName.error).toEqual(null)
   })
 })
