@@ -253,22 +253,21 @@ export const formBuilder = <T extends FormModel, TValidationResult = ValidationR
 })
 
 class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
-  private readonly _fieldDefs: FieldsDefs<T, TValidationResult>
   private readonly _options: FormOptions<T, TValidationResult>
   private readonly _component: ReactComponent
   private readonly _fieldsComponents: { [P in keyof T]: FieldComponent | null } = {} as any
+  private _fieldDefs: FieldsDefs<T, TValidationResult> = {} as any
   private _fieldsNames: Array<string> = []
 
   readonly fields: Fields<T>
 
   constructor(fieldDefs: FieldsDefs<T, TValidationResult>, options: FormOptions<T, TValidationResult>, component: ReactComponent) {
-    this._fieldDefs = fieldDefs
     this._options = options
     this._component = component
     this.fields = {} as any
 
     for (const name of Object.keys(fieldDefs)) {
-      this.addField({ name })
+      this.addField({ name, fieldDef: fieldDefs[name] })
     }
   }
 
@@ -427,8 +426,7 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
     if (!this._fieldsNames.includes(name)) {
       this._fieldsNames.push(name)
 
-      if (fieldDef)
-        this._fieldDefs[name] = fieldDef
+      this._fieldDefs[name] = fieldDef || {}
     }
   }
 
