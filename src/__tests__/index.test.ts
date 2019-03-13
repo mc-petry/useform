@@ -153,7 +153,7 @@ describe('form renders', () => {
 describe('form dynamic fields', () => {
   const localFakeReactComponent = { forceUpdate: () => ({}) }
 
-  const form = formBuilder({})
+  const form = formBuilder<any>({})
     .configure({})
     .build(localFakeReactComponent)
 
@@ -167,7 +167,7 @@ describe('form dynamic fields', () => {
       }
     })
 
-    const { onBlur, onChange, onFocus, fieldRef, ...state } = (form.fields as any).email
+    const { onBlur, onChange, onFocus, fieldRef, ...state } = form.fields.email
     const compare: typeof state = {
       name: 'email',
       label: 'email',
@@ -191,10 +191,10 @@ describe('form dynamic fields', () => {
 
     form.validate()
 
-    expect((form.fields as any).lastName.error).toEqual('require')
+    expect(form.fields.lastName.error).toEqual('require')
   })
 
-  test('validation result - everything is ok', async () => {
+  test('validation result - everything is ok', () => {
     form.addField({
       name: 'lastName',
       fieldDef: {
@@ -208,6 +208,14 @@ describe('form dynamic fields', () => {
 
     form.validate()
 
-    expect((form.fields as any).lastName.error).toEqual(null)
+    expect(form.fields.lastName.error).toEqual(null)
+  })
+
+  test('check methods dynamically added fields', () => {
+    form.addField({
+      name: 'phoneNumber'
+    })
+
+    form.fields.phoneNumber.onChange('text')
   })
 })
