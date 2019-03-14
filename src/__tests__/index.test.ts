@@ -163,7 +163,7 @@ describe('form dynamic fields', () => {
     form.addField({
       name: 'email',
       fieldDef: {
-        validate: value => !value && 'require'
+        validate: value => !value && 'required'
       }
     })
 
@@ -181,24 +181,24 @@ describe('form dynamic fields', () => {
     expect(state).toEqual(compare)
   })
 
-  test('validation result - lastName value require', () => {
+  test('validation result - lastName value required', () => {
     form.addField({
       name: 'lastName',
       fieldDef: {
-        validate: value => !value && 'require'
+        validate: value => !value && 'required'
       }
     })
 
     form.validate()
 
-    expect(form.fields.lastName.error).toEqual('require')
+    expect(form.fields.lastName.error).toEqual('required')
   })
 
   test('validation result - everything is ok', () => {
     form.addField({
       name: 'lastName',
       fieldDef: {
-        validate: value => !value && 'require'
+        validate: value => !value && 'required'
       }
     })
 
@@ -217,5 +217,54 @@ describe('form dynamic fields', () => {
     })
 
     form.fields.phoneNumber.onChange('text')
+  })
+})
+
+describe('form validation with params', () => {
+  const localFakeReactComponent = { forceUpdate: () => ({}) }
+
+  const form = formBuilder<any>({})
+    .configure({})
+    .build(localFakeReactComponent)
+
+  test('validate errors and warns without params', () => {
+    form.addField({
+      name: 'errorField',
+      fieldDef: {
+        validate: value => !value && 'required',
+        warn: value => !value && 'warn-required'
+      }
+    })
+
+    form.addField({
+      name: 'notErrorField',
+      fieldDef: {
+        validate: value => !value && 'required',
+        warn: value => !value && 'warn-required'
+      }
+    })
+
+
+    form.setValues({
+      notErrorField: 'text'
+    })
+
+    form.validate()
+
+    expect(form.fields.errorField.error).toBe('required')
+    expect(form.fields.notErrorField.error).toBe(null)
+    expect(form.fields.errorField.warn).toBe('warn-required')
+    expect(form.fields.notErrorField.warn).toBe(null)
+  })
+
+  test('validate errors and warns with params', () => {
+    expect(form.hasError('errorField')).toBe(true)
+    expect(form.hasWarn('errorField')).toBe(true)
+    expect(form.hasError(['errorField'])).toBe(true)
+    expect(form.hasWarn(['errorField'])).toBe(true)
+    expect(form.hasError('notErrorField')).toBe(false)
+    expect(form.hasWarn('notErrorField')).toBe(false)
+    expect(form.hasError(['notErrorField'])).toBe(false)
+    expect(form.hasWarn(['notErrorField'])).toBe(false)
   })
 })

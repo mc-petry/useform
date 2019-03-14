@@ -208,12 +208,12 @@ export interface FormClass<T extends FormModel> {
   /**
    * Gets a value that indicates whether the form has error
    */
-  hasError(): boolean
+  hasError(fields?: FieldsList<T>): boolean
 
   /**
    * Gets a value that indicates whether the form has warning
    */
-  hasWarn(): boolean
+  hasWarn(fields?: FieldsList<T>): boolean
 
   /**
    * Handle form submit. Typically should be passed into `<form>`
@@ -348,26 +348,36 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
       })
   }
 
-  hasError() {
+  hasError(fields: FieldsList<T> = this._fieldsNames as FieldsList<T>) {
     let hasError = false
 
-    for (const name of this._fieldsNames) {
-      if (this.fields[name].error) {
+    if (typeof fields === 'string') {
+      if (this.fields[fields].error)
         hasError = true
-        break
+    } else {
+      for (const name of fields) {
+        if (this.fields[name].error) {
+          hasError = true
+          break
+        }
       }
     }
 
     return hasError
   }
 
-  hasWarn() {
+  hasWarn(fields: FieldsList<T> = this._fieldsNames as FieldsList<T>) {
     let hasWarn = false
 
-    for (const name of this._fieldsNames) {
-      if (this.fields[name].warn) {
+    if (typeof fields === 'string') {
+      if (this.fields[fields].warn)
         hasWarn = true
-        break
+    } else {
+      for (const name of fields) {
+        if (this.fields[name].warn) {
+          hasWarn = true
+          break
+        }
       }
     }
 
