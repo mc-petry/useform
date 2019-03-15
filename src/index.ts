@@ -318,7 +318,7 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
 
     this.updateComponent()
 
-    const hasError = this.hasError()
+    const hasError = this.hasError(fields)
 
     if (hasError) {
       this.focusInvalidField()
