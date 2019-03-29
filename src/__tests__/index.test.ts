@@ -218,6 +218,20 @@ describe('form dynamic fields', () => {
 
     form.fields.phoneNumber.onChange('text')
   })
+
+  test('has field phoneNumber', () => {
+    expect(form.fields.phoneNumber).toBeTruthy()
+  })
+
+  test('doesn`t has field phoneNumber', () => {
+    form.removeFields('phoneNumber')
+
+    expect(form.fields.phoneNumber).toBeFalsy()
+  })
+
+  test('throw error when removed not existed field with strict option', () => {
+    expect(() => form.removeFields('field', { strict: true })).toThrow()
+  })
 })
 
 describe('form validation with params', () => {

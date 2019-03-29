@@ -156,12 +156,15 @@ type Fields<T> = {
   [P in keyof T]-?: Mutable<FieldData<T[P], Extract<P, string>>>
 }
 
-interface SetValuesFnOptions {
+interface StrictOption {
   /**
    * Validate that all fields exists in form.
    * @default true
    */
   strict?: boolean
+}
+
+interface SetValuesFnOptions extends StrictOption {
   /**
    * Force update component.
    * @default false
@@ -189,6 +192,12 @@ export interface FormClass<T extends FormModel> {
    * Assign a field dynamically
    */
   addField(args: AddFieldFnArgs): void
+
+  /**
+   * Removes fields from form
+   * Warning: Use only for dynamically assigned fields
+   */
+  removeFields(fields?: FieldsList<T>, opts?: StrictOption): void
 
   /**
    * Gets current form values
@@ -438,6 +447,24 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
 
       this._fieldDefs[name] = fieldDef || {}
     }
+  }
+
+  removeFields(fields: FieldsList<T>, opts: StrictOption = {}) {
+    const fieldsForRemove = typeof fields === 'string'
+      ? [fields as string]
+      : fields
+
+    if (opts.strict) {
+      for (const name of fieldsForRemove)
+        if (!this.fields[name])
+          throw new Error(`No specified field for name: "${name}"`)
+    }
+
+    this._fieldsNames = this._fieldsNames.filter(name => !fieldsForRemove.includes(name))
+    fieldsForRemove.forEach(name => {
+      delete this.fields[name]
+      delete this._fieldDefs[name]
+    })
   }
 
   private transformError(field: FieldData, error: any) {
