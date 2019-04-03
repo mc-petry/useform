@@ -270,6 +270,13 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
   private readonly _options: FormOptions<T, TValidationResult>
   private readonly _component: ReactComponent
   private readonly _fieldsComponents: { [P in keyof T]: FieldComponent | null } = {} as any
+  private readonly _initialFieldState: Pick<FieldData<any, any>, 'dirty' | 'touched' | 'error' | 'warn' | 'value'> = {
+    dirty: false,
+    touched: false,
+    error: null,
+    warn: null,
+    value: undefined
+  }
   private _fieldDefs: FieldsDefs<T, TValidationResult> = {} as any
   private _fieldsNames: Array<string> = []
 
@@ -430,11 +437,7 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
     const field = this.fields[name] = {
       name,
       label: undefined,
-      dirty: false,
-      touched: false,
-      error: null,
-      warn: null,
-      value: undefined,
+      ...this._initialFieldState,
 
       onFocus: () => this.onFocus(name),
       onBlur: () => this.onBlur(name),
@@ -476,11 +479,7 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
     for (const name of this._fieldsNames) {
       this.fields[name] = {
         ...this.fields[name],
-        dirty: false,
-        touched: false,
-        error: null,
-        warn: null,
-        value: undefined,
+        ...this._initialFieldState
       }
     }
 
