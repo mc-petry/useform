@@ -233,6 +233,11 @@ export interface FormClass<T extends FormModel> {
    * Gets a value that indicates whether the form was touched
    */
   touched(): boolean
+
+  /**
+   * Resets form values, errors and full state for all fields
+   */
+  reset(): void
 }
 
 /**
@@ -465,6 +470,21 @@ class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
       delete this.fields[name]
       delete this._fieldDefs[name]
     })
+  }
+
+  reset() {
+    for (const name of this._fieldsNames) {
+      this.fields[name] = {
+        ...this.fields[name],
+        dirty: false,
+        touched: false,
+        error: null,
+        warn: null,
+        value: undefined,
+      }
+    }
+
+    this.updateComponent()
   }
 
   private transformError(field: FieldData, error: any) {

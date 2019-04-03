@@ -282,3 +282,77 @@ describe('form validation with params', () => {
     expect(form.hasWarn(['notErrorField'])).toBe(false)
   })
 })
+
+describe('reset form',  () => {
+  interface GroupDTO {
+    name: string
+    count: number
+  }
+
+  const formDescription = formBuilder<GroupDTO>(
+    {
+      name: {
+        validate: value => value === '1' && 'test1',
+        warn: value => value === '2' && 'test2'
+      },
+
+      count: {
+        validate: value => value < 10 && 'less than 10',
+      }
+    })
+    .configure({})
+
+  const form = formDescription.build(fakeReactComponent)
+  const { fields } = form
+
+  test('reset values',  () => {
+    fields.name.onChange('text')
+    fields.count.onChange(100)
+
+    form.reset()
+
+    expect(fields.name.value).toBe(undefined)
+    expect(fields.count.value).toBe(undefined)
+  })
+
+  test('reset errors', () => {
+    fields.name.onChange('1')
+    fields.count.onChange(5)
+
+    form.validate()
+    form.reset()
+
+    expect(fields.name.error).toBe(null)
+    expect(fields.count.error).toBe(null)
+  })
+
+  test('reset warnings', () => {
+    fields.name.onChange('2')
+
+    form.validate()
+    form.reset()
+
+    expect(fields.name.warn).toBe(null)
+    expect(fields.count.warn).toBe(null)
+  })
+
+  test('field state equal to the field state of new form', () => {
+    const getInitialFormFieldState = () => {
+      const initialForm = formDescription.build({ ...fakeReactComponent })
+      const { onBlur, onChange, onFocus, fieldRef, ...state } = initialForm.fields.name
+      return state
+    }
+
+    const getResetFormState = () => {
+      fields.name.onChange('text')
+
+      form.validate()
+      form.reset()
+
+      const { onBlur, onChange, onFocus, fieldRef, ...state } = form.fields.name
+      return state
+    }
+
+    expect(getResetFormState()).toEqual(getInitialFormFieldState())
+  })
+})
