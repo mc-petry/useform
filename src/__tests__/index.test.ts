@@ -1,4 +1,4 @@
-import { formBuilder } from '../'
+import { formBuilder, FormClass } from '../'
 
 const fakeReactComponent = { forceUpdate: () => ({}) }
 
@@ -280,5 +280,39 @@ describe('form validation with params', () => {
     expect(form.hasWarn('notErrorField')).toBe(false)
     expect(form.hasError(['notErrorField'])).toBe(false)
     expect(form.hasWarn(['notErrorField'])).toBe(false)
+  })
+})
+
+describe('reset form',  () => {
+  interface FormData {
+    name: number
+  }
+
+  const formDescription = formBuilder<FormData>(
+    {
+      name: {
+        validate: value => value === 1 && 'test1',
+        warn: value => value < 10 && 'test2'
+      }
+    })
+    .configure({})
+
+  const form = formDescription.build(fakeReactComponent)
+  const initialForm = formDescription.build(fakeReactComponent)
+
+  const extractFieldState = (formSource: FormClass<FormData>) => {
+    const { onBlur, onChange, onFocus, fieldRef, ...state } = formSource.fields.name
+    return state
+  }
+
+  test('field state equal to the field state of new form', () => {
+    form.fields.name.onFocus()
+    form.fields.name.onChange(1)
+    form.fields.name.onBlur()
+    form.validate()
+
+    form.reset()
+
+    expect(extractFieldState(form)).toEqual(extractFieldState(initialForm))
   })
 })
