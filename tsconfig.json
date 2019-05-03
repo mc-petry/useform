@@ -1,18 +1,7 @@
 {
+  "extends": "./tsconfig.base",
   "compilerOptions": {
-    "declaration": true,
-    "target": "es5",
-    "module": "commonjs",
-    "strict": true,
-    "removeComments": false,
-    "sourceMap": true,
-    "jsx": "react",
-    "lib": [
-      "dom",
-      "es2016"
-    ],
-    "outDir": "./dist",
-    "types": []
+    "outDir": "./dist"
   },
   "include": [
     "./src/**/*"

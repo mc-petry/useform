@@ -8,7 +8,6 @@
     ],
     "forin": false,
     "arrow-parens": false,
-    "curly": false,
     "interface-name": [
       true,
       "never-prefix"
@@ -31,7 +30,8 @@
       true,
       2
     ],
-    "eofline": false,
+    "no-object-literal-type-assertion": false,
+    "no-submodule-imports": false,
     "object-literal-sort-keys": false,
     "one-line": [
       false

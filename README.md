@@ -1,95 +1,62 @@
-![](./logo.png)
+<p align="center">
+<img src="./logo.png">
+</p>
 
-# Forms builder
+# use form
 
 
-[![npm](https://img.shields.io/npm/v/forms-builder.svg)](https://www.npmjs.com/package/forms-builder)
+[![npm](https://img.shields.io/npm/v/react-useforms.svg)](https://www.npmjs.com/package/forms-builder)
 [![Travis](https://img.shields.io/travis/mc-petry/forms-builder.svg)](https://travis-ci.org/mc-petry/forms-builder)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
 
 ## Overview
 
-Imagine that validating and submitting form can be so simple
+Imagine that validating and submitting form can be so simple.
 
 ## Installation
 
-```bash
-npm install forms-builder --save
+```
+npm i @mc-petry/useform
 ```
 
-## Samples
+## Usage
 
-### Custom input
-
-One way to write a field component:
-
+Step 1: Create custom fields:
 ```tsx
-interface OwnProps {
-  // Your input props
-}
+import { ChangeEvent, useCallback } from 'react'
+import { Field } from 'react-useform'
 
-type ComponentProps =
-  OwnProps &
-  FieldData<string>
+function TextField({ field }: { field: Field }) {
+  const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) =>
+    field.onChange(e.target.value),
+    []
+  )
 
-export class TextField extends React.Component {
-  render() {
-    const { value, label } = this.props
-
-    return <input
+  return <div>
+    <input
+      ref={field.ref as any}
+      value={field.value || ''}
+      onChange={onChange}
+      onBlur={field.onBlur}
       type="text"
-      onFocus={this.props.onFocus}
-      onBlur={this.props.onBlur}
-      onChange={this.onChange}
-      value={value != null ? value : ''}
     />
-  }
-
-  onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.onChange(e.currentTarget.value)
-  }
+  </div>
 }
 ```
 
-### Simple form
-
+Step 2: Create form:
 ```tsx
-interface LoginDTO {
-  login: string
-  password: string
+interface FormFields {
+  name: string
 }
 
-class ComponentWithForm extends React.Component {
-  form = formBuilder<LoginDTO>(
-    {
-      login: {
-        validate: value => !value && 'required'
-      },
+function MyForm() {
+  const { fields, handleSubmit } = useForm<FormFields>()
 
-      password: {
-        validate: value => !value && 'required'
-      }
-    })
-    .configure({
-      submit: values => {
-        // TODO...
-      }
-    })
-    .build(this)
-
-  render() {
-    const { fields, handleSubmit } = this.form
-
-    return <form onSubmit={handleSubmit}>
-      <TextField {...fields.login} />
-      <TextField {...fields.password} />
-      <Button type="submit">Login</Button>
-    </form>
-  }
+  return <form onSubmit={handleSubmit}>
+    <TextField field={fields.name} />
+    <button type="submit">Submit</button>
+  </form>  
 }
 ```
-
-## Api
-
-Project written in TypeScript. So all api have intellisense!
