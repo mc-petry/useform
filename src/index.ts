@@ -1,18 +1,22 @@
-import { useCallback, useMemo, useState, useRef, createRef } from 'react'
-import { Mutable } from './utils'
-import { FieldDef } from './field-def'
-import { Field } from './field'
+import { useCallback, useMemo, useState, createRef } from 'react'
+import { FieldDef, FieldDefs } from './field-defs'
+import { Field, Fields, MutableFields } from './fields'
 import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
 
-export { Field, FieldDef, FormOptions, FormTransformers }
+export {
+  Field,
+  Fields,
+  FieldDef,
+  FieldDefs,
+  FormOptions,
+  FormTransformers
+}
 
-export type Fields<T extends { [key: string]: any }> = { [P in keyof T]: Mutable<Field<T[P], Extract<P, string>>> }
-export type FieldDefs<T, TValidationResult> = { [P in keyof T]: FieldDef<T[P], T, TValidationResult> }
 type FieldName<T> = Extract<keyof T, string>
 type FieldsList<T> = FieldName<T>[] | FieldName<T>
 
-const INITIAL_FORM_OPTIONS: FormOptions<any, any> = {
+const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
   validateOnBlur: true,
   validateOnChange: false
 }
@@ -28,21 +32,19 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
 export function useForm<
   T extends { [key: string]: any },
   TValidationResult = any
->(
-  fieldDefs: Partial<FieldDefs<T, TValidationResult>> = {},
-  options?: FormOptions<T, TValidationResult>
-) {
+>(getInitialOptions?: () => FormOptions<T, TValidationResult>) {
   const [, setState] = useState(true)
   const forceUpdate = useCallback(() => setState(s => !s), [])
 
   const res = useMemo(() => {
-    const _defs = fieldDefs as FieldDefs<T, TValidationResult>
-    const _opts: FormOptions<any, any> = {
+    const options = getInitialOptions ? getInitialOptions() : {}
+    const _defs = (options.fields || {}) as FieldDefs<T, TValidationResult>
+    const _opts: Omit<FormOptions<any, any>, 'fields'> = {
       ...INITIAL_FORM_OPTIONS,
       ...options
     }
 
-    const _fields = {} as Fields<T>
+    const _fields = {} as MutableFields<T>
 
     const fieldNames = () => Object.keys(_fields) as FieldName<T>[]
 
@@ -137,7 +139,7 @@ export function useForm<
       forceUpdate()
     }
 
-    const proxy = new Proxy(_fields, {
+    const proxy = new Proxy<Fields<T>>(_fields, {
       get(target, name: Extract<keyof T, string>) {
         if (!target[name]) {
           target[name] = {
@@ -153,7 +155,7 @@ export function useForm<
           }
 
           if (!_defs[name]) {
-            _defs[name] = {}
+            _defs[name] = _opts.fieldConfig && _opts.fieldConfig(name) || {}
           }
         }
 
@@ -234,11 +236,24 @@ export function useForm<
     }
 
     /**
-     * Gets a value that indicates whether the form was touched
+     * Gets a value that indicates whether some field is touched
      */
     const touched = () => {
       for (const name of fieldNames()) {
         if (_fields[name].touched) {
+          return true
+        }
+      }
+
+      return false
+    }
+
+    /**
+     * Gets a value that indicates whether some field is dirty
+     */
+    const dirty = () => {
+      for (const name of fieldNames()) {
+        if (_fields[name].dirty) {
           return true
         }
       }
@@ -264,7 +279,7 @@ export function useForm<
      */
     const setValues = (values: Partial<T>) => {
       for (const name of Object.keys(values)) {
-        _fields[name].value = values
+        _fields[name].value = values[name]
       }
 
       forceUpdate()
@@ -284,13 +299,42 @@ export function useForm<
         })
     }
 
+    /**
+     * Resets fields to their initial state
+     */
     const reset = (fields: FieldsList<T> = fieldNames()) => {
-      for (const name of Object.keys(_fields)) {
-        _fields[name] = {
-          ..._fields[name],
+      for (const name of fields) {
+        _fields[name as FieldName<T>] = {
+          ..._fields[name as FieldName<T>],
           ...INITIAL_FIELD_STATE
         }
       }
+
+      forceUpdate()
+    }
+
+    /**
+     * Adds the dynamic fields.
+     */
+    const add = (fields: FieldDefs<T, TValidationResult>) => {
+      for (const name of Object.keys(fields)) {
+        _defs[name as FieldName<T>] = fields[name]
+      }
+
+      forceUpdate()
+    }
+
+    /**
+     * Removes the fields. Useful for dynamic fields
+     */
+    const remove = (fields: FieldsList<T>) => {
+      if (typeof fields === 'string') {
+        fields = [fields]
+      }
+
+      fields.forEach(name => {
+        delete _fields[name]
+      })
 
       forceUpdate()
     }
@@ -302,9 +346,12 @@ export function useForm<
       hasError,
       hasWarn,
       touched,
+      dirty,
       getValues,
       setValues,
-      reset
+      reset,
+      remove,
+      add
     }
   }, [])
 

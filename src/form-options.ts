@@ -1,6 +1,12 @@
 import { FormTransformers } from './form-transformers'
+import { FieldDefs, FieldDef } from './field-defs'
 
 export interface FormOptions<T, TValidationResult> {
+  /**
+   * Fields definitions
+   */
+  fields?: Partial<FieldDefs<T, TValidationResult>>
+
   /**
    * Submission handler. Will not be called if there are errors
    */
@@ -24,4 +30,9 @@ export interface FormOptions<T, TValidationResult> {
    * @default true
    */
   validateOnBlur?: boolean
+
+  /**
+   * Dynamic field configuration
+   */
+  fieldConfig?: (fieldName: string) => FieldDef<any, T, TValidationResult> | undefined
 }

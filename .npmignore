@@ -2,5 +2,3 @@ node_modules
 .travis.yml
 tsconfig.json
 tslint.json
-webpack.config.ts
-site

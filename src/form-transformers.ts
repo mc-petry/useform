@@ -1,4 +1,4 @@
-import { Field } from './field'
+import { Field } from './fields'
 
 type InferValue<T> = T extends { [key: string]: infer V } ? V : any
 

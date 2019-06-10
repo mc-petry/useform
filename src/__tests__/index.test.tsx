@@ -35,12 +35,14 @@ test('field state after actions', () => {
 
 describe('Field actions', () => {
   test('Validate', () => {
-    const { result } = renderHook(() => useForm<UserDTO>({
-      name: {
-        validate: value => value !== 'Adelina' && 'required',
-        warn: value => value !== 'Adelina' && 'required'
+    const { result } = renderHook(() => useForm<UserDTO>(() => ({
+      fields: {
+        name: {
+          validate: value => value !== 'Adelina' && 'required',
+          warn: value => value !== 'Adelina' && 'required'
+        }
       }
-    }))
+    })))
 
     const { name } = result.current.fields
 
@@ -54,13 +56,15 @@ describe('Field actions', () => {
   })
 
   test('Validate with validateOnChange', () => {
-    const { result } = renderHook(() => useForm<UserDTO>({
-      name: {
-        validate: value => value !== 'Adelina' && 'required',
-        warn: value => value !== 'Adelina' && 'required',
-        validateOnChange: true
+    const { result } = renderHook(() => useForm<UserDTO>(() => ({
+      fields: {
+        name: {
+          validate: value => value !== 'Adelina' && 'required',
+          warn: value => value !== 'Adelina' && 'required',
+          validateOnChange: true
+        }
       }
-    }))
+    })))
 
     const { name } = result.current.fields
 
@@ -70,17 +74,15 @@ describe('Field actions', () => {
   })
 
   test('Validate with form validateOnChange', () => {
-    const { result } = renderHook(() => useForm<UserDTO>(
-      {
+    const { result } = renderHook(() => useForm<UserDTO>(() => ({
+      fields: {
         name: {
           validate: value => value !== 'Adelina' && 'required',
           warn: value => value !== 'Adelina' && 'required'
-        }
+        },
       },
-      {
-        validateOnChange: true
-      }
-    ))
+      validateOnChange: true
+    })))
 
     const { name } = result.current.fields
 

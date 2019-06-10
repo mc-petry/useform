@@ -37,3 +37,7 @@ export interface FieldDef<TValue, TFields, TValidationResult> {
    */
   validateOnBlur?: boolean
 }
+
+export type FieldDefs<T, TValidationResult> = {
+  [P in keyof T]: FieldDef<T[P], T, TValidationResult>
+}

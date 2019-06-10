@@ -1,4 +1,5 @@
 import { RefObject } from 'react'
+import { Mutable } from './utils'
 
 export interface Field<TValue = any, TName extends string = any> {
   readonly ref: RefObject<{ focus: () => void }>
@@ -49,4 +50,12 @@ export interface Field<TValue = any, TName extends string = any> {
   readonly onFocus: () => void
   readonly onBlur: () => void
   readonly onChange: (value: TValue) => void
+}
+
+export type Fields<T extends { [key: string]: any }> = {
+  [P in keyof T]: Field<T[P], Extract<P, string>>
+}
+
+export type MutableFields<T extends { [key: string]: any }> = {
+  [P in keyof T]: Mutable<Field<T[P], Extract<P, string>>>
 }

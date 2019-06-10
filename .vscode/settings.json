@@ -1,4 +1,7 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "jira-plugin.workingProject": ""
+  "jira-plugin.workingProject": "",
+  "files.exclude": {
+    "site": true
+  }
 }
