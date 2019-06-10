@@ -1,574 +1,359 @@
-type Mutable<T> = {
-  -readonly [P in keyof T]: T[P]
+import { useCallback, useMemo, useState, createRef } from 'react'
+import { FieldDef, FieldDefs } from './field-defs'
+import { Field, Fields, MutableFields } from './fields'
+import { FormOptions } from './form-options'
+import { FormTransformers } from './form-transformers'
+
+export {
+  Field,
+  Fields,
+  FieldDef,
+  FieldDefs,
+  FormOptions,
+  FormTransformers
 }
 
-export interface FieldComponent {
-  /**
-   * Implements focus method
-   * Needs to work `focusInvalidField`
-   *
-   * @returns Field is focused
-   */
-  focus?(): boolean
+type FieldName<T> = Extract<keyof T, string>
+type FieldsList<T> = FieldName<T>[] | FieldName<T>
+
+const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
+  validateOnBlur: true,
+  validateOnChange: false
 }
 
-export interface FieldData<TValue = any, TName = string> {
-  readonly name: TName
-
-  /**
-   * Gets a value that indicates whether a field value changed
-   *
-   * @default false
-   */
-  readonly dirty: boolean
-
-  /**
-   * Gets a value that indicated whether a field had a focus
-   *
-   * @default false
-   */
-  readonly touched: boolean
-
-  /**
-   * Gets field current value
-   *
-   * @default undefined
-   */
-  readonly value: TValue | undefined
-
-  /**
-   * Gets current field error
-   *
-   * @default null
-   */
-  readonly error: any
-
-  /**
-   * Gets current field warning
-   *
-   * @default null
-   */
-  readonly warn: any
-
-  /**
-   * Gets current field label
-   * Use `transformers` to define field labels
-   */
-  readonly label: any
-
-  readonly onFocus: () => void
-  readonly onBlur: () => void
-  readonly onChange: (value: TValue) => void
-
-  readonly fieldRef: (r: FieldComponent | null) => void
+const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 'value'> = {
+  dirty: false,
+  touched: false,
+  error: null,
+  warn: null,
+  value: undefined,
 }
 
-interface FieldDef<TValue, TFields, TValidationResult = ValidationResult> {
-  /**
-   * Validate specific field
-   */
-  validate?: ValidateFn<TValue, TFields, TValidationResult>
+export function useForm<
+  T extends { [key: string]: any },
+  TValidationResult = any
+>(getInitialOptions?: () => FormOptions<T, TValidationResult>) {
+  const [, setState] = useState(true)
+  const forceUpdate = useCallback(() => setState(s => !s), [])
 
-  /**
-   * Same as `validate` but does not block form submission
-   */
-  warn?: ValidateFn<TValue, TFields, TValidationResult>
+  const res = useMemo(() => {
+    const options = getInitialOptions ? getInitialOptions() : {}
+    const _defs = (options.fields || {}) as FieldDefs<T, TValidationResult>
+    const _opts: Omit<FormOptions<any, any>, 'fields'> = {
+      ...INITIAL_FORM_OPTIONS,
+      ...options
+    }
 
-  /**
-   * Calls after value changed
-   */
-  changed?: ChangedFn<TValue, TFields>
+    const _fields = {} as MutableFields<T>
 
-  /**
-   * Dependent fields that must be validated after this field
-   */
-  dependent?: FieldsList<TFields>
+    const fieldNames = () => Object.keys(_fields) as FieldName<T>[]
 
-  /**
-   * Override default form behaviour for specific field
-   */
-  validateOnChange?: boolean
+    const transformError = (field: Field, error: any) => {
+      const transformers = _opts.transformers
 
-  /**
-   * Override default form behaviour for specific field
-   */
-  validateOnBlur?: boolean
-}
+      return error
+        ? transformers && transformers.error
+          ? transformers.error(error, field)
+          : error
+        : null
+    }
 
-export interface SynteticEvent { preventDefault(): void }
-interface ReactComponent { forceUpdate(): void }
-type ValidationResult = any
-type ValidateFn<V, T, R> = (value: V, form: FormClass<T>) => R
-type ChangedFn<V, T> = (newValue: V, form: FormClass<T>) => void
-type SubmitFn<T> = (values: T) => void
-type FieldsList<T> = Array<Extract<keyof T, string>> | (Extract<keyof T, string>)
-type FieldsDefs<T, TValidationResult> = { [P in keyof T]: FieldDef<T[P], T, TValidationResult> }
+    const validateField = (name: keyof T) => {
+      const field = _fields[name]
+      const def = _defs[name]
+      const validateFn = def.validate
+      const warnFn = def.warn
 
-export interface FormTransformers<T, TValidationResult> {
-  /**
-   * Transform fields errors
-   */
-  error?: (error: TValidationResult, field: FieldData<any, keyof T>) => any
+      if (validateFn) {
+        field.error = transformError(field, validateFn(field.value))
+      }
 
-  /**
-   * Define fields labels
-   */
-  label?: (field: FieldData<any, Extract<keyof T, string>>) => any
-}
+      if (warnFn) {
+        field.warn = transformError(field, warnFn(field.value))
+      }
 
-interface FormOptions<T, TValidationResult> {
-  /**
-   * Submission handler. Will not be called if there are errors
-   */
-  submit?: SubmitFn<T>
+      // Validate dependent fields
+      let dependent = def.dependent
 
-  /**
-   * Form transformers
-   */
-  transformers?: FormTransformers<T, TValidationResult>
+      if (dependent) {
+        if (typeof dependent === 'string') {
+          dependent = [dependent]
+        }
 
-  /**
-   * Default form behaviour
-   *
-   * @default false
-   */
-  validateOnChange?: boolean
+        for (const dep of dependent) {
+          if (_fields[dep].touched) {
+            validateField(dep)
+          }
+        }
+      }
+    }
 
-  /**
-   * Default form behaviour. Keep in mind that pristine (not dirty) fields will not be validated
-   *
-   * @default true
-   */
-  validateOnBlur?: boolean
-}
+    const handleChange = (name: keyof T, value: any) => {
+      const field = _fields[name]
 
-interface FormModel {
-  [key: string]: any
-}
+      field.value = value
+      field.dirty = true
 
-export type ErrorsMapList<T> = {
-  field: Extract<keyof T, string>
-  error?: ValidationResult
-  warn?: ValidationResult
-}[]
+      const def = _defs[name]
 
-type Fields<T> = {
-  [P in keyof T]-?: Mutable<FieldData<T[P], Extract<P, string>>>
-}
+      // Validate
+      const validateOnChange = def.validateOnChange != null
+        ? def.validateOnChange
+        : _opts.validateOnChange
 
-interface StrictOption {
-  /**
-   * Validate that all fields exists in form.
-   * @default true
-   */
-  strict?: boolean
-}
+      if (validateOnChange) {
+        validateField(name)
+      }
 
-interface SetValuesFnOptions extends StrictOption {
-  /**
-   * Force update component.
-   * @default false
-   */
-  update?: boolean
-}
+      // Handle changed event
+      if (def.changed) {
+        def.changed(value)
+      }
 
-interface AddFieldFnArgs {
-  name: string
-  fieldDef?: FieldDef<any, any, any>
-}
+      forceUpdate()
+    }
 
-export interface FormClass<T extends FormModel> {
-  readonly fields: Fields<T>
+    const handleFocus = (name: keyof T) => {
+      const field = _fields[name]
 
-  /**
-   * Sets form values
-   *
-   * @param values New form values
-   * @param options
-   */
-  setValues(values: Partial<T> | undefined, options?: boolean | SetValuesFnOptions): void
+      field.touched = true
 
-  /**
-   * Assign a field dynamically
-   */
-  addField(args: AddFieldFnArgs): void
+      forceUpdate()
+    }
 
-  /**
-   * Removes fields from form
-   * Warning: Use only for dynamically assigned fields
-   */
-  removeFields(fields?: FieldsList<T>, opts?: StrictOption): void
+    const handleBlur = (name: keyof T) => {
+      if (!_fields[name].dirty) {
+        return
+      }
 
-  /**
-   * Gets current form values
-   */
-  getValues(): T
+      const def = _defs[name]
 
-  /**
-   * Validates specific field(s)
-   */
-  validate(fields?: FieldsList<T>): Promise<boolean>
+      const validateOnBlur = def.validateOnBlur != null
+        ? def.validateOnBlur
+        : _opts.validateOnBlur!
 
-  /**
-   * Sets errors and warnings for specific field(s)
-   */
-  setErrors(errors: ErrorsMapList<T>): void
+      if (validateOnBlur) {
+        validateField(name)
+      }
 
-  /**
-   * Gets a value that indicates whether the form has error
-   */
-  hasError(fields?: FieldsList<T>): boolean
+      forceUpdate()
+    }
 
-  /**
-   * Gets a value that indicates whether the form has warning
-   */
-  hasWarn(fields?: FieldsList<T>): boolean
+    const proxy = new Proxy<Fields<T>>(_fields, {
+      get(target, name: Extract<keyof T, string>) {
+        if (!target[name]) {
+          target[name] = {
+            ref: createRef(),
+            name,
+            label: undefined,
 
-  /**
-   * Handle form submit. Typically should be passed into `<form>`
-   */
-  handleSubmit(e: SynteticEvent): void
+            ...INITIAL_FIELD_STATE,
 
-  /**
-   * Gets a value that indicates whether the form was touched
-   */
-  touched(): boolean
+            onChange: value => handleChange(name, value),
+            onFocus: () => handleFocus(name),
+            onBlur: () => handleBlur(name)
+          }
 
-  /**
-   * Resets form values, errors and full state for all fields
-   */
-  reset(): void
-}
+          if (!_defs[name]) {
+            _defs[name] = _opts.fieldConfig && _opts.fieldConfig(name) || {}
+          }
+        }
 
-/**
- * Build form component
- *
- * Generic `T` - form model. Usefull to use your DTO object
- * Generic `TValidationResult` - Usefull to define strict validation result
- */
-export const formBuilder = <T extends FormModel, TValidationResult = ValidationResult>(fieldDefs: FieldsDefs<T, TValidationResult>) => ({
-  /**
-   * Configure form options
-   */
-  configure: (options: FormOptions<T, TValidationResult>) => ({
+        return target[name]
+      }
+    })
 
     /**
-     * React component to update
-     * Typically you should pass `this` if form defined inside React component
+     * Gets a value that indicates whether the form has error
      */
-    build: (component: ReactComponent): FormClass<T> =>
-      new Form(fieldDefs, {
-        // Predefined config values:
-        validateOnChange: false,
-        validateOnBlur: true,
-        ...options
-      }, component)
-  })
-})
+    const hasError = (fields: FieldsList<T> = fieldNames()) => {
+      if (typeof fields === 'string') {
+        fields = [fields]
+      }
 
-class Form<T extends FormModel, TValidationResult> implements FormClass<T> {
-  private readonly _options: FormOptions<T, TValidationResult>
-  private readonly _component: ReactComponent
-  private readonly _fieldsComponents: { [P in keyof T]: FieldComponent | null } = {} as any
-  private readonly _initialFieldState: Pick<FieldData<any, any>, 'dirty' | 'touched' | 'error' | 'warn' | 'value'> = {
-    dirty: false,
-    touched: false,
-    error: null,
-    warn: null,
-    value: undefined
-  }
-  private _fieldDefs: FieldsDefs<T, TValidationResult> = {} as any
-  private _fieldsNames: Array<string> = []
-
-  readonly fields: Fields<T>
-
-  constructor(fieldDefs: FieldsDefs<T, TValidationResult>, options: FormOptions<T, TValidationResult>, component: ReactComponent) {
-    this._options = options
-    this._component = component
-    this.fields = {} as any
-
-    for (const name of Object.keys(fieldDefs)) {
-      this.addField({ name, fieldDef: fieldDefs[name] })
-    }
-  }
-
-  setValues(values: Partial<T> | undefined, options?: boolean | SetValuesFnOptions) {
-    if (!values)
-      return
-
-    let strict: boolean | undefined = true
-    let update
-
-    if (typeof options === 'boolean') {
-      strict = options
-    }
-    else if (typeof options !== 'undefined') {
-      strict = options.strict
-      update = options.update
-    }
-
-    for (const name of Object.keys(values)) {
-      if (!this.fields[name])
-        if (strict)
-          throw new Error(`No specified field for name: "${name}"`)
-        else
-          continue
-
-      this.fields[name].value = values[name]
-    }
-
-    if (update)
-      this._component.forceUpdate()
-  }
-
-  getValues(): T {
-    const values: Partial<T> = {}
-    this._fieldsNames.forEach(name => values[name] = this.fields[name].value)
-
-    return values as T
-  }
-
-  async validate(fields: FieldsList<T> = this._fieldsNames as FieldsList<T>) {
-    if (typeof fields === 'string') {
-      this.validateField(fields)
-    }
-    else {
-      for (const name of fields)
-        this.validateField(name)
-    }
-
-    this.updateComponent()
-
-    const hasError = this.hasError(fields)
-
-    if (hasError) {
-      this.focusInvalidField()
-    }
-
-    return !hasError
-  }
-
-  setErrors(errors: ErrorsMapList<T>) {
-    for (const error of errors) {
-      const field = this.fields[error.field]
-
-      field.error = this.transformError(field, error.error)
-      field.warn = this.transformError(field, error.warn)
-    }
-
-    this.updateComponent()
-  }
-
-  handleSubmit = (e: SynteticEvent) => {
-    e.preventDefault()
-
-    this.validate()
-      .then(success => {
-        if (success && this._options.submit)
-          this._options.submit(this.getValues())
-      })
-  }
-
-  hasError(fields: FieldsList<T> = this._fieldsNames as FieldsList<T>) {
-    let hasError = false
-
-    if (typeof fields === 'string') {
-      if (this.fields[fields].error)
-        hasError = true
-    } else {
       for (const name of fields) {
-        if (this.fields[name].error) {
-          hasError = true
-          break
+        if (_fields[name].error) {
+          return true
         }
       }
+
+      return false
     }
 
-    return hasError
-  }
+    /**
+     * Gets a value that indicates whether the form has error
+     */
+    const hasWarn = (fields: FieldsList<T> = fieldNames()) => {
+      if (typeof fields === 'string') {
+        fields = [fields]
+      }
 
-  hasWarn(fields: FieldsList<T> = this._fieldsNames as FieldsList<T>) {
-    let hasWarn = false
-
-    if (typeof fields === 'string') {
-      if (this.fields[fields].warn)
-        hasWarn = true
-    } else {
       for (const name of fields) {
-        if (this.fields[name].warn) {
-          hasWarn = true
-          break
+        if (_fields[name].warn) {
+          return true
         }
       }
+
+      return false
     }
 
-    return hasWarn
-  }
+    const focusInvalidField = () => {
+      for (const name of fieldNames()) {
+        const field = _fields[name]
 
-  touched() {
-    let touched = false
+        if (field.error) {
+          if (field.ref.current) {
+            field.ref.current.focus()
+          }
 
-    for (const name of this._fieldsNames) {
-      if (this.fields[name].touched) {
-        touched = true
-        break
-      }
-    }
-
-    return touched
-  }
-
-  focusInvalidField() {
-    for (const name of this._fieldsNames) {
-      const field = this.fields[name]
-
-      if (field.error) {
-        const component = this._fieldsComponents[name]
-
-        if (component && component.focus && component.focus())
           return
-      }
-    }
-  }
-
-  addField({ name, fieldDef }: AddFieldFnArgs) {
-    const transformers = this._options.transformers
-
-    const field = this.fields[name] = {
-      name,
-      label: undefined,
-      ...this._initialFieldState,
-
-      onFocus: () => this.onFocus(name),
-      onBlur: () => this.onBlur(name),
-      onChange: value => this.onChange(name, value),
-
-      fieldRef: (instance: FieldComponent | null) => this._fieldsComponents[name] = instance
-    }
-
-    field.label = transformers && transformers.label
-      ? transformers.label(this.fields[name as keyof T])
-      : name
-
-    if (!this._fieldsNames.includes(name)) {
-      this._fieldsNames.push(name)
-
-      this._fieldDefs[name] = fieldDef || {}
-    }
-  }
-
-  removeFields(fields: FieldsList<T>, opts: StrictOption = {}) {
-    const fieldsForRemove = typeof fields === 'string'
-      ? [fields as string]
-      : fields
-
-    if (opts.strict) {
-      for (const name of fieldsForRemove)
-        if (!this.fields[name])
-          throw new Error(`No specified field for name: "${name}"`)
-    }
-
-    this._fieldsNames = this._fieldsNames.filter(name => !fieldsForRemove.includes(name))
-    fieldsForRemove.forEach(name => {
-      delete this.fields[name]
-      delete this._fieldDefs[name]
-    })
-  }
-
-  reset() {
-    for (const name of this._fieldsNames) {
-      this.fields[name] = {
-        ...this.fields[name],
-        ...this._initialFieldState
+        }
       }
     }
 
-    this.updateComponent()
-  }
-
-  private transformError(field: FieldData, error: any) {
-    const transformers = this._options.transformers
-
-    return error
-      ? transformers && transformers.error
-        ? transformers.error(error, field)
-        : error
-      : null
-  }
-
-  private validateField(fieldName: keyof T) {
-    const fieldDef = this._fieldDefs[fieldName] as FieldDef<any, T>
-    const validateFn = fieldDef.validate
-    const warnFn = fieldDef.warn
-    const field = this.fields[fieldName]
-
-    if (validateFn)
-      field.error = this.transformError(field, validateFn(field.value, this))
-
-    if (warnFn)
-      field.warn = this.transformError(field, warnFn(field.value, this))
-
-    // Validate dependent fields
-    const dependent = fieldDef.dependent
-
-    if (dependent) {
-      if (typeof dependent === 'string') {
-        if (this.fields[dependent].touched)
-          this.validateField(dependent)
+    /**
+     * Validates specific field(s)
+     * @returns `true` when form validates successfully
+     */
+    const validate = async (fields: FieldsList<T> = fieldNames()) => {
+      if (typeof fields === 'string') {
+        fields = [fields]
       }
-      else {
-        for (const dependentField of dependent)
-          if (this.fields[dependentField].touched)
-            this.validateField(dependentField)
+
+      for (const field of fields) {
+        validateField(field)
       }
+
+      const err = hasError(fields)
+
+      if (err) {
+        focusInvalidField()
+      }
+
+      forceUpdate()
+
+      return !err
     }
-  }
 
-  private onFocus(fieldName: string) {
-    const field = this.fields[fieldName]
-    field.touched = true
-  }
+    /**
+     * Gets a value that indicates whether some field is touched
+     */
+    const touched = () => {
+      for (const name of fieldNames()) {
+        if (_fields[name].touched) {
+          return true
+        }
+      }
 
-  private onBlur(fieldName: string) {
-    if (!this.fields[fieldName].dirty)
-      return
+      return false
+    }
 
-    const def = this._fieldDefs[fieldName]
+    /**
+     * Gets a value that indicates whether some field is dirty
+     */
+    const dirty = () => {
+      for (const name of fieldNames()) {
+        if (_fields[name].dirty) {
+          return true
+        }
+      }
 
-    const validateOnBlur = def.validateOnBlur != null
-      ? def.validateOnBlur
-      : this._options.validateOnBlur!
+      return false
+    }
 
-    if (validateOnBlur)
-      this.validateField(fieldName)
+    /**
+     * Gets form values
+     */
+    const getValues = () => {
+      const data: Partial<T> = {}
 
-    this.updateComponent()
-  }
+      fieldNames().forEach(name => {
+        data[name] = _fields[name].value
+      })
 
-  private onChange(fieldName: string, value: any) {
-    const field = this.fields[fieldName]
+      return data as T
+    }
 
-    field.value = value
-    field.dirty = true
+    /**
+     * Sets form values
+     */
+    const setValues = (values: Partial<T>) => {
+      for (const name of Object.keys(values)) {
+        _fields[name].value = values[name]
+      }
 
-    const fieldDef = this._fieldDefs[fieldName]
+      forceUpdate()
+    }
 
-    // Validate
-    const validateOnChange = fieldDef.validateOnChange != null
-      ? fieldDef.validateOnChange
-      : this._options.validateOnChange
+    /**
+     * Handles form submit. Typically should be passed into `<form>`
+     */
+    const handleSubmit = (e: React.SyntheticEvent) => {
+      e.preventDefault()
 
-    if (validateOnChange)
-      this.validateField(fieldName)
+      validate()
+        .then(success => {
+          if (success && _opts.submit) {
+            _opts.submit(getValues())
+          }
+        })
+    }
 
-    // Handle changed event
-    if (fieldDef.changed)
-      fieldDef.changed(value, this)
+    /**
+     * Resets fields to their initial state
+     */
+    const reset = (fields: FieldsList<T> = fieldNames()) => {
+      for (const name of fields) {
+        _fields[name as FieldName<T>] = {
+          ..._fields[name as FieldName<T>],
+          ...INITIAL_FIELD_STATE
+        }
+      }
 
-    this.updateComponent()
-  }
+      forceUpdate()
+    }
 
-  private updateComponent() {
-    this._component.forceUpdate()
-  }
+    /**
+     * Adds the dynamic fields.
+     */
+    const add = (fields: FieldDefs<T, TValidationResult>) => {
+      for (const name of Object.keys(fields)) {
+        _defs[name as FieldName<T>] = fields[name]
+      }
+
+      forceUpdate()
+    }
+
+    /**
+     * Removes the fields. Useful for dynamic fields
+     */
+    const remove = (fields: FieldsList<T>) => {
+      if (typeof fields === 'string') {
+        fields = [fields]
+      }
+
+      fields.forEach(name => {
+        delete _fields[name]
+      })
+
+      forceUpdate()
+    }
+
+    return {
+      fields: proxy,
+      validate,
+      handleSubmit,
+      hasError,
+      hasWarn,
+      touched,
+      dirty,
+      getValues,
+      setValues,
+      reset,
+      remove,
+      add
+    }
+  }, [])
+
+  return res
 }

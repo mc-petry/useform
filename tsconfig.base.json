@@ -1,14 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es5",
     "module": "commonjs",
-    "strict": true,
-    "noUnusedLocals": true,
-    "sourceMap": true,
+    "target": "esnext",
     "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": true,
     "lib": [
       "dom",
-      "es2016"
+      "esnext"
+    ],
+    "plugins": [
+      {
+        "name": "typescript-tslint-plugin"
+      }
     ]
   }
 }

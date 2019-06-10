@@ -1,4 +1,4 @@
-import { formBuilder, FormClass } from '../'
+import { formBuilder, FormClass } from '../index-old'
 
 const fakeReactComponent = { forceUpdate: () => ({}) }
 
