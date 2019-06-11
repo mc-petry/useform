@@ -65,11 +65,11 @@ export function useForm<
       const warnFn = def.warn
 
       if (validateFn) {
-        field.error = transformError(field, validateFn(field.value))
+        field.error = transformError(field, validateFn(field.value, _fields))
       }
 
       if (warnFn) {
-        field.warn = transformError(field, warnFn(field.value))
+        field.warn = transformError(field, warnFn(field.value, _fields))
       }
 
       // Validate dependent fields

@@ -1,4 +1,6 @@
-type ValidateFn<V, R> = (value: V | undefined) => R
+import { Fields } from './fields'
+
+type ValidateFn<V, T, R> = (value: V | undefined, fields: Fields<T>) => R
 type ChangedFn<V> = (newValue: V | undefined) => void
 
 export interface FieldDef<TValue, TFields, TValidationResult> {
@@ -10,12 +12,12 @@ export interface FieldDef<TValue, TFields, TValidationResult> {
    * @example
    * age => (age < 18 && 'too-young') || (age > 75 && 'too-old')
    */
-  validate?: ValidateFn<TValue, TValidationResult>
+  validate?: ValidateFn<TValue, TFields, TValidationResult>
 
   /**
    * Same as `validate` but does not block form submission
    */
-  warn?: ValidateFn<TValue, TValidationResult>
+  warn?: ValidateFn<TValue, TFields, TValidationResult>
 
   /**
    * Calls after value changed
