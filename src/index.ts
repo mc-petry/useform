@@ -33,8 +33,8 @@ export function useForm<
   T extends { [key: string]: any },
   TValidationResult = any
 >(getInitialOptions?: () => FormOptions<T, TValidationResult>) {
-  const [, setState] = useState(true)
-  const forceUpdate = useCallback(() => setState(s => !s), [])
+  const [, setState] = useState(0)
+  const forceUpdate = useCallback(() => setState(s => s + 1), [])
 
   const res = useMemo(() => {
     const options = getInitialOptions ? getInitialOptions() : {}

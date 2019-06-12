@@ -1,6 +1,6 @@
 import { Fields } from './fields'
 
-type ValidateFn<V, T, R> = (value: V | undefined, fields: Fields<T>) => R
+type ValidateFn<V, T, R> = (value: V | undefined, fields: Fields<T>) => R | false | undefined
 type ChangedFn<V> = (newValue: V | undefined) => void
 
 export interface FieldDef<TValue, TFields, TValidationResult> {
