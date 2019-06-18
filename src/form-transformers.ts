@@ -15,6 +15,6 @@ export interface FormTransformers<T, TValidationResult> {
    * Transforms label
    */
   label?: (
-    field: Field<InferValue<T>, Extract<keyof T, string>>
+    name: Extract<keyof T, string>
   ) => any
 }

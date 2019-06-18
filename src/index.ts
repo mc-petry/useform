@@ -145,7 +145,9 @@ export function useForm<
           target[name] = {
             ref: createRef(),
             name,
-            label: undefined,
+            label: _opts.transformers && _opts.transformers.label
+              ? _opts.transformers.label(name)
+              : undefined,
 
             ...INITIAL_FIELD_STATE,
 

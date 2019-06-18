@@ -6,23 +6,36 @@ interface UserDTO {
   age: number
 }
 
-test('initial field state', () => {
-  const { result } = renderHook(() => useForm<UserDTO>())
-  const { ref, onBlur, onChange, onFocus, ...fieldState } = result.current.fields.name
-  const state: typeof fieldState = {
-    name: 'name',
-    label: undefined,
-    dirty: false,
-    touched: false,
-    value: undefined,
-    error: null,
-    warn: null
-  }
+describe('Initial field state', () => {
+  test('Default', () => {
+    const { result } = renderHook(() => useForm<UserDTO>())
+    const { ref, onBlur, onChange, onFocus, ...fieldState } = result.current.fields.name
+    const state: typeof fieldState = {
+      name: 'name',
+      label: undefined,
+      dirty: false,
+      touched: false,
+      value: undefined,
+      error: null,
+      warn: null
+    }
 
-  expect(state).toEqual(fieldState)
+    expect(fieldState).toEqual(state)
+  })
+
+  test('Label transformer', () => {
+    const { result } = renderHook(() => useForm<UserDTO>(() => ({
+      transformers: {
+        label: name => name[0].toUpperCase() + name.substr(1)
+      }
+    })))
+    const { age } = result.current.fields
+
+    expect(age.label).toBe('Age')
+  })
 })
 
-test('field state after actions', () => {
+test('Field state after actions', () => {
   const { result } = renderHook(() => useForm<UserDTO>())
   const { name } = result.current.fields
 
@@ -91,22 +104,3 @@ describe('Field actions', () => {
     expect(name.warn).toBe('required')
   })
 })
-
-// test('validate', () => {
-//   const { result } = renderHook(() => useForm<UserDTO>({
-//     name: {
-//       validate: value => (
-//         (!value && 'required') ||
-//         (value && !['Oksana', 'Adelina'].includes(value) && 'wrong-name')
-//       )
-//     }
-//   }))
-
-//   const { name } = result.current.fields
-
-//   act(() => {
-//     name.onChange('Olga')
-//     name.onBlur()
-//   })
-//   expect(name.error).toBe('wrong-name')
-// })
