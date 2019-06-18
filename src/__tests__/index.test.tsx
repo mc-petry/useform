@@ -103,4 +103,14 @@ describe('Field actions', () => {
     expect(name.error).toBe('required')
     expect(name.warn).toBe('required')
   })
+
+  test('Set errors and warns', () => {
+    const { result } = renderHook(() => useForm<UserDTO>())
+    const form = result.current
+
+    act(() => form.setErrors({ age: 'required' }))
+    act(() => form.setWarns({ name: 'empty' }))
+    expect(form.fields.age.error).toBe('required')
+    expect(form.fields.name.warn).toBe('empty')
+  })
 })

@@ -15,6 +15,8 @@ export {
 
 type FieldName<T> = Extract<keyof T, string>
 type FieldsList<T> = FieldName<T>[] | FieldName<T>
+type ValidationResult = any
+type FieldErrors<T> = { [field in FieldName<T>]?: ValidationResult }
 
 const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
   validateOnBlur: true,
@@ -31,7 +33,7 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
 
 export function useForm<
   T extends { [key: string]: any },
-  TValidationResult = any
+  TValidationResult = ValidationResult
 >(getInitialOptions?: () => FormOptions<T, TValidationResult>) {
   const [, setState] = useState(0)
   const forceUpdate = useCallback(() => setState(s => s + 1), [])
@@ -341,6 +343,29 @@ export function useForm<
       forceUpdate()
     }
 
+    function setErrorsInternal(key: 'error' | 'warn', errors: FieldErrors<T>) {
+      for (const name of Object.keys(errors)) {
+        const field = (proxy as MutableFields<T>)[name]
+        field[key] = transformError(field, errors[name])
+      }
+
+      forceUpdate()
+    }
+
+    /**
+     * Sets errors for specific field(s)
+     */
+    const setErrors = (errors: FieldErrors<T>) => {
+      setErrorsInternal('error', errors)
+    }
+
+    /**
+     * Sets warns for specific field(s)
+     */
+    const setWarns = (errors: FieldErrors<T>) => {
+      setErrorsInternal('warn', errors)
+    }
+
     return {
       fields: proxy,
       validate,
@@ -351,6 +376,8 @@ export function useForm<
       dirty,
       getValues,
       setValues,
+      setErrors,
+      setWarns,
       reset,
       remove,
       add
