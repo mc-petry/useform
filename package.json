@@ -1,6 +1,6 @@
 {
   "name": "@mc-petry/useform",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "React form hook",
   "main": "dist/index.js",
   "typings": "dist/index",
@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mc-petry/forms-builder.git"
+    "url": "git+https://github.com/mc-petry/useform.git"
   },
   "keywords": [
     "react",
@@ -43,7 +43,7 @@
   "author": "mc-petry",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mc-petry/forms-builder/issues"
+    "url": "https://github.com/mc-petry/useform/issues"
   },
-  "homepage": "https://github.com/mc-petry/forms-builder#readme"
+  "homepage": "https://mc-petry.github.io/useform-site/"
 }
