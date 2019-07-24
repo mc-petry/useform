@@ -35,4 +35,9 @@ export interface FormOptions<T, TValidationResult> {
    * Dynamic field configuration
    */
   fieldConfig?: (fieldName: string) => FieldDef<any, T, TValidationResult> | undefined
+
+  /**
+   * Initial field values
+   */
+  initialValues?: T
 }

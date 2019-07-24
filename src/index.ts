@@ -34,16 +34,20 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
 export function useForm<
   T extends { [key: string]: any },
   TValidationResult = ValidationResult
->(getInitialOptions?: () => FormOptions<T, TValidationResult>) {
+>(getInitialOptions?: FormOptions<T, TValidationResult> | (() => FormOptions<T, TValidationResult>)) {
   const [, setState] = useState(0)
   const forceUpdate = useCallback(() => setState(s => s + 1), [])
 
   const res = useMemo(() => {
-    const options = getInitialOptions ? getInitialOptions() : {}
+    const options = getInitialOptions
+      ? typeof getInitialOptions === 'function'
+        ? getInitialOptions()
+        : getInitialOptions
+      : {}
     const _defs = (options.fields || {}) as FieldDefs<T, TValidationResult>
-    const _opts: Omit<FormOptions<any, any>, 'fields'> = {
+    const _opts: Omit<FormOptions<T, any>, 'fields'> = {
       ...INITIAL_FORM_OPTIONS,
-      ...options
+      ...options as any
     }
 
     const _fields = {} as MutableFields<T>
@@ -166,6 +170,13 @@ export function useForm<
         return target[name]
       }
     })
+
+    // Initialize defined fields
+    if (options.initialValues) {
+      Object.keys(options.initialValues).forEach(name => {
+        (proxy as MutableFields<T>)[name].value = options.initialValues![name]
+      })
+    }
 
     /**
      * Gets a value that indicates whether the form has error

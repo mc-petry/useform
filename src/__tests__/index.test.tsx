@@ -1,15 +1,20 @@
 import { useForm } from '../index'
-import { renderHook, act } from 'react-hooks-testing-library'
+import { renderHook, act } from '@testing-library/react-hooks'
 
 interface UserDTO {
-  name: string
+  name?: string
   age: number
 }
 
 describe('Initial field state', () => {
   test('Default', () => {
-    const { result } = renderHook(() => useForm<UserDTO>())
-    const { ref, onBlur, onChange, onFocus, ...fieldState } = result.current.fields.name
+    const { result } = renderHook(() => useForm<UserDTO>({
+      initialValues: {
+        age: 18
+      }
+    }))
+    const { name, age } = result.current.fields
+    const { ref, onBlur, onChange, onFocus, ...fieldState } = name
     const state: typeof fieldState = {
       name: 'name',
       label: undefined,
@@ -21,6 +26,7 @@ describe('Initial field state', () => {
     }
 
     expect(fieldState).toEqual(state)
+    expect(age.value).toEqual(18)
   })
 
   test('Label transformer', () => {

@@ -1,6 +1,6 @@
 {
   "name": "@mc-petry/useform",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "React form hook",
   "main": "dist/index.js",
   "typings": "dist/index",
@@ -8,21 +8,21 @@
     "react": "^16.8.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.13",
-    "@types/node": "^12.0.4",
-    "@types/react": "^16.8.19",
-    "@types/react-dom": "^16.8.4",
+    "@testing-library/react-hooks": "^1.1.0",
+    "@types/jest": "^24.0.15",
+    "@types/node": "^12.6.8",
+    "@types/react": "^16.8.23",
+    "@types/react-dom": "^16.8.5",
     "jest": "^24.8.0",
     "npm-run-all": "^4.1.5",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-hooks-testing-library": "^0.5.0",
     "react-test-renderer": "^16.8.6",
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.2",
-    "tslint": "^5.17.0",
-    "typescript": "^3.5.1",
-    "typescript-tslint-plugin": "^0.4.0"
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3",
+    "typescript-tslint-plugin": "^0.5.4"
   },
   "scripts": {
     "test": "jest",
@@ -30,7 +30,7 @@
     "compile": "tsc -p tsconfig.json",
     "build": "run-s clean compile",
     "dev": "tsc -w",
-    "prepare": "run-s build test"
+    "prepublishOnly": "run-s build test"
   },
   "repository": {
     "type": "git",

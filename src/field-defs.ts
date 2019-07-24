@@ -41,5 +41,5 @@ export interface FieldDef<TValue, TFields, TValidationResult> {
 }
 
 export type FieldDefs<T, TValidationResult> = {
-  [P in keyof T]: FieldDef<T[P], T, TValidationResult>
+  [P in keyof T]-?: FieldDef<T[P], T, TValidationResult>
 }

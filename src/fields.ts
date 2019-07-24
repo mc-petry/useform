@@ -53,9 +53,9 @@ export interface Field<TValue = any, TName extends string = any> {
 }
 
 export type Fields<T extends { [key: string]: any }> = {
-  [P in keyof T]: Field<T[P], Extract<P, string>>
+  [P in keyof T]-?: Field<T[P], Extract<P, string>>
 }
 
 export type MutableFields<T extends { [key: string]: any }> = {
-  [P in keyof T]: Mutable<Field<T[P], Extract<P, string>>>
+  [P in keyof T]-?: Mutable<Field<T[P], Extract<P, string>>>
 }
