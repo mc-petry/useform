@@ -31,10 +31,12 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
   value: undefined,
 }
 
+export type FormOptionsInitializer<T, TValidationResult> = FormOptions<T, TValidationResult> | (() => FormOptions<T, TValidationResult>)
+
 export function useForm<
   T extends { [key: string]: any },
   TValidationResult = ValidationResult
->(getInitialOptions?: FormOptions<T, TValidationResult> | (() => FormOptions<T, TValidationResult>)) {
+>(getInitialOptions?: FormOptionsInitializer<T, TValidationResult>) {
   const [, setState] = useState(0)
   const forceUpdate = useCallback(() => setState(s => s + 1), [])
 
