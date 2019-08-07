@@ -36,7 +36,7 @@ export type FormOptionsInitializer<T, TValidationResult> = FormOptions<T, TValid
 export function useForm<
   T extends { [key: string]: any },
   TValidationResult = ValidationResult
->(getInitialOptions?: FormOptionsInitializer<T, TValidationResult>) {
+>(getInitialOptions?: FormOptionsInitializer<T, TValidationResult>, deps: any[] = []) {
   const [, setState] = useState(0)
   const forceUpdate = useCallback(() => setState(s => s + 1), [])
 
@@ -395,7 +395,7 @@ export function useForm<
       remove,
       add
     }
-  }, [])
+  }, deps)
 
   return res
 }
