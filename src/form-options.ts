@@ -39,5 +39,5 @@ export interface FormOptions<T, TValidationResult> {
   /**
    * Initial field values
    */
-  initialValues?: Partial<T>
+  initialValues?: Partial<T> | null
 }
