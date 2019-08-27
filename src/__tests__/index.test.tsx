@@ -110,6 +110,20 @@ describe('Field actions', () => {
     expect(name.warn).toBe('required')
   })
 
+  test('Set values', () => {
+    const { result } = renderHook(() => useForm<UserDTO>())
+    const form = result.current
+
+    const values: UserDTO = {
+      age: 18,
+      name: 'John'
+    }
+
+    act(() => form.setValues(values))
+
+    expect(form.getValues()).toEqual(values)
+  })
+
   test('Set errors and warns', () => {
     const { result } = renderHook(() => useForm<UserDTO>())
     const form = result.current

@@ -296,7 +296,7 @@ export function useForm<
      */
     const setValues = (values: Partial<T>) => {
       for (const name of Object.keys(values)) {
-        _fields[name].value = values[name]
+        (proxy as MutableFields<T>)[name].value = values[name]
       }
 
       forceUpdate()
