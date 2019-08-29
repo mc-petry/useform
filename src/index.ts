@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, createRef } from 'react'
-import { FieldDef, FieldDefs } from './field-defs'
+import { FieldDef, FieldDefs, ValidateFn } from './field-defs'
 import { Field, Fields, MutableFields } from './fields'
 import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
@@ -32,6 +32,21 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
 }
 
 export type FormOptionsInitializer<T, TValidationResult> = FormOptions<T, TValidationResult> | (() => FormOptions<T, TValidationResult>)
+
+function callValidate<T>(fn: ValidateFn<any, T, any>, value: any, fields: Fields<T>) {
+  if (Array.isArray(fn)) {
+    for (const f of fn) {
+      const result = f(value, fields)
+
+      if (result) {
+        return result
+      }
+    }
+  }
+  else {
+    return fn(value, fields)
+  }
+}
 
 export function useForm<
   T extends { [key: string]: any },
@@ -73,11 +88,11 @@ export function useForm<
       const warnFn = def.warn
 
       if (validateFn) {
-        field.error = transformError(field, validateFn(field.value, _fields))
+        field.error = transformError(field, callValidate(validateFn, field.value, _fields))
       }
 
       if (warnFn) {
-        field.warn = transformError(field, warnFn(field.value, _fields))
+        field.warn = transformError(field, callValidate(warnFn, field.value, _fields))
       }
 
       // Validate dependent fields
@@ -232,7 +247,7 @@ export function useForm<
      * Validates specific field(s)
      * @returns `true` when form validates successfully
      */
-    const validate = async (fields: FieldsList<T> = fieldNames()) => {
+    const validate = (fields: FieldsList<T> = fieldNames()) => {
       if (typeof fields === 'string') {
         fields = [fields]
       }
@@ -294,12 +309,17 @@ export function useForm<
     /**
      * Sets form values
      */
-    const setValues = (values: Partial<T>) => {
+    const setValues = (values: Partial<T>, shouldValidate?: boolean) => {
       for (const name of Object.keys(values)) {
         (proxy as MutableFields<T>)[name].value = values[name]
       }
 
-      forceUpdate()
+      if (shouldValidate) {
+        validate()
+      }
+      else {
+        forceUpdate()
+      }
     }
 
     /**
@@ -308,12 +328,11 @@ export function useForm<
     const handleSubmit = (e: React.SyntheticEvent) => {
       e.preventDefault()
 
-      validate()
-        .then(success => {
-          if (success && _opts.submit) {
-            _opts.submit(getValues())
-          }
-        })
+      const success = validate()
+
+      if (success && _opts.submit) {
+        _opts.submit(getValues())
+      }
     }
 
     /**

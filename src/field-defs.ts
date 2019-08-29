@@ -1,7 +1,8 @@
 import { Fields } from './fields'
 
-type ValidateFn<V, T, R> = (value: V | undefined, fields: Fields<T>) => R | false | undefined
-type ChangedFn<V> = (newValue: V | undefined) => void
+export type ValidateSignle<V, T, R> = (value: V | undefined, fields: Fields<T>) => R | false | undefined
+export type ValidateFn<V, T, R> = ValidateSignle<V, T, R> | ValidateSignle<V, T, R>[]
+export type ChangedFn<V> = (newValue: V | undefined) => void
 
 export interface FieldDef<TValue, TFields, TValidationResult> {
   /**

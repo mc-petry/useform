@@ -74,6 +74,30 @@ describe('Field actions', () => {
     expect(name.warn).toBe('required')
   })
 
+  test('Validate array', () => {
+    const { result } = renderHook(() => useForm<UserDTO>(() => ({
+      fields: {
+        age: {
+          validate: [
+            value => !value && 'required',
+            value => value! < 18 && 'too-young'
+          ]
+        }
+      }
+    })))
+
+    const { fields: { age }, setValues, validate } = result.current
+
+    act(() => { validate() })
+    expect(age.error).toBe('required')
+
+    act(() => setValues({ age: 17 }, true))
+    expect(age.error).toBe('too-young')
+
+    act(() => setValues({ age: 21 }, true))
+    expect(age.error).toBeNull()
+  })
+
   test('Validate with validateOnChange', () => {
     const { result } = renderHook(() => useForm<UserDTO>(() => ({
       fields: {
