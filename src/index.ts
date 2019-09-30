@@ -229,6 +229,9 @@ export function useForm<
       return false
     }
 
+    /**
+     * Sets focus on first field with error
+     */
     const focusInvalidField = () => {
       for (const name of fieldNames()) {
         const field = _fields[name]
@@ -412,7 +415,8 @@ export function useForm<
       setWarns,
       reset,
       remove,
-      add
+      add,
+      focusInvalidField
     }
   }, deps)
 
