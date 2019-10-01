@@ -1,22 +1,22 @@
-import { useCallback, useMemo, useState, createRef } from 'react'
+import { useCallback, useMemo, useState, createRef, RefObject, MutableRefObject, useEffect } from 'react'
 import { FieldDef, FieldDefs, ValidateFn } from './field-defs'
 import { Field, Fields, MutableFields } from './fields'
 import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
+import { FieldName, FieldsList, Form, FieldErrors, ValidationResult } from './form'
+import { useChildForm, PrimitiveFormFields } from './child'
 
 export {
   Field,
   Fields,
   FieldDef,
   FieldDefs,
+  Form,
   FormOptions,
-  FormTransformers
+  FormTransformers,
+  useChildForm,
+  PrimitiveFormFields
 }
-
-type FieldName<T> = Extract<keyof T, string>
-type FieldsList<T> = FieldName<T>[] | FieldName<T>
-type ValidationResult = any
-type FieldErrors<T> = { [field in FieldName<T>]?: ValidationResult }
 
 const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
   validateOnBlur: true,
@@ -84,28 +84,36 @@ export function useForm<
     const validateField = (name: keyof T) => {
       const field = _fields[name]
       const def = _defs[name]
-      const validateFn = def.validate
-      const warnFn = def.warn
 
-      if (validateFn) {
-        field.error = transformError(field, callValidate(validateFn, field.value, _fields))
+      if (field.forms.length > 0) {
+        field.forms.forEach(f => {
+          f.validate()
+        })
       }
+      else {
+        const validateFn = def.validate
+        const warnFn = def.warn
 
-      if (warnFn) {
-        field.warn = transformError(field, callValidate(warnFn, field.value, _fields))
-      }
-
-      // Validate dependent fields
-      let dependent = def.dependent
-
-      if (dependent) {
-        if (typeof dependent === 'string') {
-          dependent = [dependent]
+        if (validateFn) {
+          field.error = transformError(field, callValidate(validateFn, field.value, _fields))
         }
 
-        for (const dep of dependent) {
-          if (_fields[dep].touched) {
-            validateField(dep)
+        if (warnFn) {
+          field.warn = transformError(field, callValidate(warnFn, field.value, _fields))
+        }
+
+        // Validate dependent fields
+        let dependent = def.dependent
+
+        if (dependent) {
+          if (typeof dependent === 'string') {
+            dependent = [dependent]
+          }
+
+          for (const dep of dependent) {
+            if (_fields[dep].touched) {
+              validateField(dep)
+            }
           }
         }
       }
@@ -162,7 +170,7 @@ export function useForm<
       forceUpdate()
     }
 
-    const proxy = new Proxy<Fields<T>>(_fields, {
+    const proxy: Fields<T> = new Proxy(_fields, {
       get(target, name: Extract<keyof T, string>) {
         if (!target[name]) {
           target[name] = {
@@ -176,7 +184,16 @@ export function useForm<
 
             onChange: value => handleChange(name, value),
             onFocus: () => handleFocus(name),
-            onBlur: () => handleBlur(name)
+            onBlur: () => handleBlur(name),
+
+            forms: [],
+
+            addChildForm: f => {
+              _fields[name].forms.push(f)
+            },
+            removeChildForm: f => {
+              _fields[name].forms.splice(_fields[name].forms.indexOf(f), 1)
+            }
           }
 
           if (!_defs[name]) {
@@ -195,61 +212,57 @@ export function useForm<
       })
     }
 
-    /**
-     * Gets a value that indicates whether the form has error
-     */
-    const hasError = (fields: FieldsList<T> = fieldNames()) => {
+    const hasErrorInternal = (type: 'hasError' | 'hasWarn', fields: FieldsList<T> = fieldNames()) => {
       if (typeof fields === 'string') {
         fields = [fields]
       }
 
       for (const name of fields) {
-        if (_fields[name].error) {
-          return true
+        if (_fields[name].forms.length > 0) {
+          for (const f of _fields[name].forms) {
+            if (f[type]()) {
+              return true
+            }
+          }
+        }
+        else {
+          if (_fields[name].error) {
+            return true
+          }
         }
       }
 
       return false
     }
 
-    /**
-     * Gets a value that indicates whether the form has error
-     */
-    const hasWarn = (fields: FieldsList<T> = fieldNames()) => {
-      if (typeof fields === 'string') {
-        fields = [fields]
-      }
+    const hasError = (fields: FieldsList<T> = fieldNames()) => hasErrorInternal('hasError', fields)
+    const hasWarn = (fields: FieldsList<T> = fieldNames()) => hasErrorInternal('hasWarn', fields)
 
-      for (const name of fields) {
-        if (_fields[name].warn) {
-          return true
-        }
-      }
-
-      return false
-    }
-
-    /**
-     * Sets focus on first field with error
-     */
     const focusInvalidField = () => {
       for (const name of fieldNames()) {
         const field = _fields[name]
 
-        if (field.error) {
-          if (field.ref.current) {
-            field.ref.current.focus()
-          }
+        if (field.forms.length > 0) {
+          for (const f of field.forms) {
+            if (f.hasError()) {
+              f.focusInvalidField()
 
-          return
+              return
+            }
+          }
+        }
+        else {
+          if (field.error) {
+            if (field.ref.current) {
+              field.ref.current.focus()
+            }
+
+            return
+          }
         }
       }
     }
 
-    /**
-     * Validates specific field(s)
-     * @returns `true` when form validates successfully
-     */
     const validate = (fields: FieldsList<T> = fieldNames()) => {
       if (typeof fields === 'string') {
         fields = [fields]
@@ -270,9 +283,6 @@ export function useForm<
       return !err
     }
 
-    /**
-     * Gets a value that indicates whether some field is touched
-     */
     const touched = () => {
       for (const name of fieldNames()) {
         if (_fields[name].touched) {
@@ -283,9 +293,6 @@ export function useForm<
       return false
     }
 
-    /**
-     * Gets a value that indicates whether some field is dirty
-     */
     const dirty = () => {
       for (const name of fieldNames()) {
         if (_fields[name].dirty) {
@@ -296,9 +303,6 @@ export function useForm<
       return false
     }
 
-    /**
-     * Gets form values
-     */
     const getValues = () => {
       const data: Partial<T> = {}
 
@@ -309,9 +313,6 @@ export function useForm<
       return data as T
     }
 
-    /**
-     * Sets form values
-     */
     const setValues = (values: Partial<T>, shouldValidate?: boolean) => {
       for (const name of Object.keys(values)) {
         (proxy as MutableFields<T>)[name].value = values[name]
@@ -325,9 +326,6 @@ export function useForm<
       }
     }
 
-    /**
-     * Handles form submit. Typically should be passed into `<form>`
-     */
     const handleSubmit = (e: React.SyntheticEvent) => {
       e.preventDefault()
 
@@ -338,9 +336,6 @@ export function useForm<
       }
     }
 
-    /**
-     * Resets fields to their initial state
-     */
     const reset = (fields: FieldsList<T> = fieldNames()) => {
       for (const name of fields) {
         _fields[name as FieldName<T>] = {
@@ -352,9 +347,6 @@ export function useForm<
       forceUpdate()
     }
 
-    /**
-     * Adds the dynamic fields.
-     */
     const add = (fields: FieldDefs<T, TValidationResult>) => {
       for (const name of Object.keys(fields)) {
         _defs[name as FieldName<T>] = fields[name]
@@ -363,9 +355,6 @@ export function useForm<
       forceUpdate()
     }
 
-    /**
-     * Removes the fields. Useful for dynamic fields
-     */
     const remove = (fields: FieldsList<T>) => {
       if (typeof fields === 'string') {
         fields = [fields]
@@ -387,22 +376,16 @@ export function useForm<
       forceUpdate()
     }
 
-    /**
-     * Sets errors for specific field(s)
-     */
     const setErrors = (errors: FieldErrors<T>) => {
       setErrorsInternal('error', errors)
     }
 
-    /**
-     * Sets warns for specific field(s)
-     */
     const setWarns = (errors: FieldErrors<T>) => {
       setErrorsInternal('warn', errors)
     }
 
-    return {
-      fields: proxy,
+    const form = {
+      fields: proxy as Fields<T>,
       validate,
       handleSubmit,
       hasError,
@@ -418,6 +401,8 @@ export function useForm<
       add,
       focusInvalidField
     }
+
+    return form as Form<T>
   }, deps)
 
   return res
