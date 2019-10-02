@@ -5,6 +5,7 @@ import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
 import { FieldName, FieldsList, Form, FieldErrors, ValidationResult } from './form'
 import { useChildForm, PrimitiveFormFields } from './child'
+import { removeItem, addItem } from './utils'
 
 export {
   Field,
@@ -15,7 +16,9 @@ export {
   FormOptions,
   FormTransformers,
   useChildForm,
-  PrimitiveFormFields
+  PrimitiveFormFields,
+  removeItem,
+  addItem
 }
 
 const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
@@ -28,7 +31,7 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
   touched: false,
   error: null,
   warn: null,
-  value: undefined,
+  value: undefined
 }
 
 export type FormOptionsInitializer<T, TValidationResult> = FormOptions<T, TValidationResult> | (() => FormOptions<T, TValidationResult>)
@@ -338,9 +341,15 @@ export function useForm<
 
     const reset = (fields: FieldsList<T> = fieldNames()) => {
       for (const name of fields) {
+        const field = _fields[name as FieldName<T>]
+
         _fields[name as FieldName<T>] = {
-          ..._fields[name as FieldName<T>],
+          ...field,
           ...INITIAL_FIELD_STATE
+        }
+
+        if (field.forms.length > 0) {
+          field.forms.forEach(f => f.reset())
         }
       }
 

@@ -61,5 +61,14 @@ export function useChildForm<T extends { [key: string]: any } | string>(
     }
   }, [child.fields])
 
-  return proxy as typeof child
+  return proxy as Pick<
+    typeof child,
+    'fields' |
+    'hasError' |
+    'hasWarn' |
+    'touched' |
+    'dirty' |
+    'getValues' |
+    'focusInvalidField'
+  >
 }

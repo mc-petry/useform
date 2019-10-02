@@ -1,5 +1,6 @@
-import { useForm } from '../index'
+import { useForm, useChildForm } from '../index'
 import { renderHook, act } from '@testing-library/react-hooks'
+import { InternalField } from '../fields'
 
 interface UserDTO {
   name?: string
@@ -14,7 +15,7 @@ describe('Initial field state', () => {
       }
     }))
     const { name, age } = result.current.fields
-    const { ref, onBlur, onChange, onFocus, ...fieldState } = name
+    const { ref, onBlur, onChange, onFocus, addChildForm, removeChildForm, forms, ...fieldState } = name as InternalField
     const state: typeof fieldState = {
       name: 'name',
       label: undefined,
@@ -156,5 +157,49 @@ describe('Field actions', () => {
     act(() => form.setWarns({ name: 'empty' }))
     expect(form.fields.age.error).toBe('required')
     expect(form.fields.name.warn).toBe('empty')
+  })
+})
+
+describe('Children forms', () => {
+  test('Object', () => {
+    interface UserData {
+      name: string
+    }
+
+    interface FormData {
+      users: UserData[]
+    }
+
+    const { result: { current: parent } } = renderHook(() => useForm<FormData>(() => ({
+      initialValues: {
+        users: [
+          { name: 'John' }
+        ]
+      }
+    })))
+
+    const { result: { current: child } } = renderHook(() => useForm<UserData>(() => ({
+      fields: {
+        name: {
+          validate: v => v && v.length < 10 && 'min-length'
+        }
+      }
+    })))
+
+    const { result: { current: proxy } } = renderHook(() => useChildForm(0, parent.fields.users, child))
+
+    act(() => { parent.validate() })
+
+    expect(proxy.fields.name.value).toBe('John')
+    expect(proxy.fields.name.error).toBe('min-length')
+
+    act(() => { proxy.fields.name.onChange('Jesika') })
+
+    expect(parent.fields.users.value).toEqual([{ name: 'Jesika' } as UserData])
+
+    act(() => { parent.reset() })
+
+    expect(proxy.fields.name.value).toBe(undefined)
+    expect(proxy.fields.name.error).toBe(null)
   })
 })
