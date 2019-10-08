@@ -135,6 +135,27 @@ describe('Field actions', () => {
     expect(name.warn).toBe('required')
   })
 
+  test('Changed with form argument', () => {
+    const { result } = renderHook(() => useForm<UserDTO>(() => ({
+      fields: {
+        age: {
+          changed: (value, _form) => {
+            if (value && value >= 18) {
+              _form.setValues({ name: 'Anton' })
+            }
+          }
+        }
+      },
+      initialValues: {
+        name: 'Toha'
+      }
+    })))
+    const form = result.current
+    expect(form.fields.name.value).toEqual('Toha')
+    act(() => form.fields.age.onChange(18))
+    expect(form.fields.name.value).toEqual('Anton')
+  })
+
   test('Set values', () => {
     const { result } = renderHook(() => useForm<UserDTO>())
     const form = result.current
