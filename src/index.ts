@@ -141,7 +141,7 @@ export function useForm<
 
       // Handle changed event
       if (def.changed) {
-        def.changed(value)
+        def.changed(value, form)
       }
 
       forceUpdate()

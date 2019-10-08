@@ -1,8 +1,9 @@
 import { Fields } from './fields'
+import { Form } from './form'
 
 export type ValidateSignle<V, T, R> = (value: V | undefined, fields: Fields<T>) => R | false | undefined
 export type ValidateFn<V, T, R> = ValidateSignle<V, T, R> | ValidateSignle<V, T, R>[]
-export type ChangedFn<V> = (newValue: V | undefined) => void
+export type ChangedFn<V, T> = (newValue: V | undefined, form: Form<T>) => void
 
 export interface FieldDef<TValue, TFields, TValidationResult> {
   /**
@@ -23,7 +24,7 @@ export interface FieldDef<TValue, TFields, TValidationResult> {
   /**
    * Calls after value changed
    */
-  changed?: ChangedFn<TValue>
+  changed?: ChangedFn<TValue, TFields>
 
   /**
    * Dependent fields that must be validated after this field
