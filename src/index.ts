@@ -4,8 +4,7 @@ import { Field, Fields, MutableFields } from './fields'
 import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
 import { FieldName, FieldsList, Form, FieldErrors, ValidationResult } from './form'
-import { useChildForm, PrimitiveFormFields } from './child'
-import { removeItem, addItem } from './utils'
+import { useChildForm, PrimitiveFormFields, removeFieldItem, addFieldItem } from './child'
 import { memoField } from './memo-field'
 
 export {
@@ -18,8 +17,8 @@ export {
   FormTransformers,
   useChildForm,
   PrimitiveFormFields,
-  removeItem,
-  addItem,
+  removeFieldItem,
+  addFieldItem,
   memoField
 }
 

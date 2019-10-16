@@ -1,6 +1,8 @@
 import { useForm, useChildForm } from '../index'
 import { renderHook, act } from '@testing-library/react-hooks'
-import { InternalField } from '../fields'
+import { InternalField, Field } from '../fields'
+import { memoField } from '../memo-field'
+import React from 'react'
 
 interface UserDTO {
   name?: string
@@ -222,5 +224,13 @@ describe('Children forms', () => {
 
     expect(proxy.fields.name.value).toBe(undefined)
     expect(proxy.fields.name.error).toBe(null)
+  })
+})
+
+describe('Utils', () => {
+  test('memoField', () => {
+    memoField(({ }: { field: Field, other: any }) => {
+      return <div />
+    })
   })
 })

@@ -1,7 +1,7 @@
 import React, { ComponentType, Component } from 'react'
 import { Field } from '.'
 
-function areEqualShallow(a: any, b: any) {
+function equal(a: any, b: any) {
   for (const key in a) {
     if (a[key] !== b[key]) {
       return false
@@ -10,24 +10,28 @@ function areEqualShallow(a: any, b: any) {
   return true
 }
 
-export function memoField<T extends ComponentType<{ field: Field }>>(FieldComponent: T) {
-  return class MemoizedField extends Component<{ field: Field }> {
+/**
+ * Like React.memo provides shallow comparision of props and field props
+ */
+export function memoField<T, P extends { field: Field }>(FieldComponent: ComponentType<P> & T): T {
+  return class MemoizedField extends Component<P> {
     _field: Field | undefined
 
-    shouldComponentUpdate(nextProps: { field: Field }) {
-      if (!areEqualShallow(this._field, nextProps.field)) {
+    shouldComponentUpdate(nextProps: P) {
+      if (!equal(this._field, nextProps.field)) {
         return true
       }
 
-      return !areEqualShallow(this.props, nextProps)
+      return !equal(this.props, nextProps)
     }
 
     render() {
+      // Save latest field props
       this._field = { ...this.props.field }
 
       return <FieldComponent
         {...this.props as any}
       />
     }
-  }
+  } as any
 }

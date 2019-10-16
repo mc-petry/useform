@@ -72,3 +72,11 @@ export function useChildForm<T extends { [key: string]: any } | string>(
     'focusInvalidField'
   >
 }
+
+export function removeFieldItem<T>(field: Field<T[]>, index: number) {
+  field.onChange(field.value!.filter((_, i) => i !== index))
+}
+
+export function addFieldItem<T>(field: Field<T[]>, item: T) {
+  field.onChange(field.value!.concat(item))
+}
