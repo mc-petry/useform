@@ -6,6 +6,7 @@ import { FormTransformers } from './form-transformers'
 import { FieldName, FieldsList, Form, FieldErrors, ValidationResult } from './form'
 import { useChildForm, PrimitiveFormFields } from './child'
 import { removeItem, addItem } from './utils'
+import { memoField } from './memo-field'
 
 export {
   Field,
@@ -18,7 +19,8 @@ export {
   useChildForm,
   PrimitiveFormFields,
   removeItem,
-  addItem
+  addItem,
+  memoField
 }
 
 const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
