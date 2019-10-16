@@ -43,7 +43,7 @@ export function useChildForm<T extends { [key: string]: any } | string>(
 
             parent[index] = isComplex.current
               ? {
-                ...parent[index],
+                ...parent[index] as {},
                 [name]: value
               }
               : value

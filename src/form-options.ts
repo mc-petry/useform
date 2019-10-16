@@ -1,5 +1,5 @@
 import { FormTransformers } from './form-transformers'
-import { FieldDefs, FieldDef } from './field-defs'
+import { FieldDefs, FieldDef, ValidationSchema } from './field-defs'
 
 export interface FormOptions<T, TValidationResult> {
   /**
@@ -40,4 +40,10 @@ export interface FormOptions<T, TValidationResult> {
    * Initial field values
    */
   initialValues?: Partial<T> | null
+
+  /**
+   * Validation scheme.
+   * Has lower prioritet than [field].validate
+   */
+  validationSchema?: ValidationSchema<T, TValidationResult>
 }

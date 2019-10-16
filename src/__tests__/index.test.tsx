@@ -183,6 +183,27 @@ describe('Field actions', () => {
   })
 })
 
+describe('Form options', () => {
+  test('Validation schema', () => {
+    const { result: { current: form } } = renderHook(() => useForm<UserDTO>(() => ({
+      fields: {
+        age: {
+          validate: v => !v && 'required'
+        }
+      },
+      validationSchema: {
+        age: v => !v && 'schema-required',
+        name: v => !v && 'required'
+      }
+    })))
+
+    act(() => { form.validate() })
+
+    expect(form.fields.age.error).toBe('required')
+    expect(form.fields.name.error).toBe('required')
+  })
+})
+
 describe('Children forms', () => {
   test('Object', () => {
     interface UserData {
@@ -228,7 +249,7 @@ describe('Children forms', () => {
 })
 
 describe('Utils', () => {
-  test('memoField', () => {
+  test('Memo field', () => {
     memoField(({ }: { field: Field, other: any }) => {
       return <div />
     })

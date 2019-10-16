@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, createRef, RefObject, MutableRefObject, useEffect } from 'react'
-import { FieldDef, FieldDefs, ValidateFn } from './field-defs'
+import { FieldDef, FieldDefs, ValidateFn, ValidationSchema } from './field-defs'
 import { Field, Fields, MutableFields } from './fields'
 import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
@@ -95,7 +95,7 @@ export function useForm<
         })
       }
       else {
-        const validateFn = def.validate
+        const validateFn = def.validate || _opts.validationSchema && _opts.validationSchema[name] as ValidateFn<any, any, any>
         const warnFn = def.warn
 
         if (validateFn) {
@@ -213,6 +213,13 @@ export function useForm<
     if (options.initialValues) {
       Object.keys(options.initialValues).forEach(name => {
         (proxy as MutableFields<T>)[name].value = options.initialValues![name]
+      })
+    }
+
+    if (options.validationSchema) {
+      Object.keys(options.validationSchema).forEach(name => {
+        // tslint:disable-next-line: no-unused-expression
+        proxy[name]
       })
     }
 

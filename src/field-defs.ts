@@ -1,9 +1,12 @@
 import { Fields } from './fields'
-import { Form } from './form'
+import { Form, ValidationResult } from './form'
 
 export type ValidateSignle<V, T, R> = (value: V | undefined, fields: Fields<T>) => R | false | undefined
 export type ValidateFn<V, T, R> = ValidateSignle<V, T, R> | ValidateSignle<V, T, R>[]
 export type ChangedFn<V, T> = (newValue: V | undefined, form: Form<T>) => void
+export type ValidationSchema<T = any, TValidationResult = ValidationResult> = {
+  [P in keyof T]?: ValidateFn<T[P], T, TValidationResult>
+}
 
 export interface FieldDef<TValue, TFields, TValidationResult> {
   /**
