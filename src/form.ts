@@ -68,15 +68,27 @@ export interface Form<T extends { [key: string]: any } = any> {
   /**
    * Removes the fields. Useful for dynamic fields
    */
-  remove: (fields: FieldsList<T>) => void
+  removeField: (fields: FieldsList<T>) => void
 
   /**
    * Adds the dynamic fields.
    */
-  add: (fields: FieldDefs<T, ValidationResult>) => void
+  addField: (fields: FieldDefs<T, ValidationResult>) => void
 
   /**
    * Sets focus on first field with error
    */
   focusInvalidField: () => void
+}
+
+export interface InternalForm<T = any> extends Form<T> {
+  /**
+   * Prevents rerender on any type of operations
+   */
+  setSilent: (value: boolean) => void
+
+  /**
+   * Validates child form without focusing invalid field
+   */
+  subformValidate: () => void
 }

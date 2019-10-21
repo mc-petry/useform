@@ -1,14 +1,6 @@
 import React, { ComponentType, Component } from 'react'
 import { Field } from '.'
-
-function equal(a: any, b: any) {
-  for (const key in a) {
-    if (a[key] !== b[key]) {
-      return false
-    }
-  }
-  return true
-}
+import { isFieldEqual } from './utils'
 
 /**
  * Like React.memo provides shallow comparision of props and field props
@@ -18,11 +10,11 @@ export function memoField<T, P extends { field: Field }>(FieldComponent: Compone
     _field: Field | undefined
 
     shouldComponentUpdate(nextProps: P) {
-      if (!equal(this._field, nextProps.field)) {
+      if (!isFieldEqual(this._field, nextProps.field)) {
         return true
       }
 
-      return !equal(this.props, nextProps)
+      return !isFieldEqual(this.props, nextProps)
     }
 
     render() {

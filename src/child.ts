@@ -1,35 +1,65 @@
-import { Form } from './form'
-import { useEffect, useMemo, useRef } from 'react'
+import { Form, InternalForm } from './form'
+import { useEffect, useMemo, useRef, useCallback } from 'react'
 import { Field, InternalField } from './fields'
 
 export interface PrimitiveFormFields<T> {
   index: T
 }
 
+/**
+ * @param index Current index
+ * @param field Field from parent form
+ * @param child Child form
+ * @param silent Prevents rerender parents form. Increases performance
+ */
 export function useChildForm<T extends { [key: string]: any } | string>(
   index: number,
   field: Field<T[]>,
-  child: T extends object ? Form<T> : Form<PrimitiveFormFields<T>>
+  child: T extends object ? Form<T> : Form<PrimitiveFormFields<T>>,
+  silent: boolean = false
 ) {
   // Set local form values from parent
+  const isFirstRender = useRef(true)
+  const prevFieldValue = useRef<T>()
   const isComplex = useRef(false)
 
-  useEffect(() => {
+  const childForm = child as Form as InternalForm
+
+  const updateValue = useCallback(() => {
     const value = field.value![index]
     isComplex.current = typeof value === 'object'
+
+    if (silent) {
+      childForm.setSilent(true)
+    }
+
     child.setValues(
       isComplex.current
         ? field.value![index] as any
         : { index: field.value![index] }
     )
+
+    if (silent) {
+      childForm.setSilent(false)
+    }
   }, [field.value![index]])
+
+  if (isFirstRender.current) {
+    updateValue()
+    isFirstRender.current = false
+  }
+
+  if (prevFieldValue.current !== field.value![index]) {
+    prevFieldValue.current = field.value![index]
+    updateValue()
+  }
 
   // Add child form to parent one
   useEffect(() => {
-    (field as InternalField).addChildForm(child as any)
+    (field as InternalField).addChildForm(child as Form)
 
     return () => {
-      (field as InternalField).removeChildForm(child as any)
+      (field as InternalField).removeChildForm(child as Form)
     }
   }, [])
 

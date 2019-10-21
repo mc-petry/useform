@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useState, createRef, RefObject, MutableRefObject, useEffect } from 'react'
+import { useCallback, useMemo, useState, createRef, RefObject, MutableRefObject, useEffect, useRef } from 'react'
 import { FieldDef, FieldDefs, ValidateFn, ValidationSchema } from './field-defs'
 import { Field, Fields, MutableFields } from './fields'
 import { FormOptions } from './form-options'
 import { FormTransformers } from './form-transformers'
-import { FieldName, FieldsList, Form, FieldErrors, ValidationResult } from './form'
+import { FieldName, FieldsList, Form, FieldErrors, ValidationResult, InternalForm } from './form'
 import { useChildForm, PrimitiveFormFields, removeFieldItem, addFieldItem } from './child'
 import { memoField } from './memo-field'
 
@@ -57,7 +57,12 @@ export function useForm<
   TValidationResult = ValidationResult
 >(getInitialOptions?: FormOptionsInitializer<T, TValidationResult>, deps: any[] = []) {
   const [, setState] = useState(0)
-  const forceUpdate = useCallback(() => setState(s => s + 1), [])
+  const silent = useRef(false)
+  const forceUpdate = useCallback(() => {
+    if (!silent.current) {
+      setState(s => s + 1)
+    }
+  }, [])
 
   const res = useMemo(() => {
     const options = getInitialOptions
@@ -91,7 +96,7 @@ export function useForm<
 
       if (field.forms.length > 0) {
         field.forms.forEach(f => {
-          f.validate()
+          (f as InternalForm).subformValidate()
         })
       }
       else {
@@ -209,17 +214,18 @@ export function useForm<
       }
     })
 
-    // Initialize defined fields
-    if (options.initialValues) {
-      Object.keys(options.initialValues).forEach(name => {
-        (proxy as MutableFields<T>)[name].value = options.initialValues![name]
-      })
-    }
-
+    // Initialize fields defined in validation schema
     if (options.validationSchema) {
       Object.keys(options.validationSchema).forEach(name => {
         // tslint:disable-next-line: no-unused-expression
         proxy[name]
+      })
+    }
+
+    // Initialize fields defined in initialValues
+    if (options.initialValues) {
+      Object.keys(options.initialValues).forEach(name => {
+        (proxy as MutableFields<T>)[name].value = options.initialValues![name]
       })
     }
 
@@ -294,6 +300,14 @@ export function useForm<
       return !err
     }
 
+    const subformValidate = () => {
+      for (const field of fieldNames()) {
+        validateField(field)
+      }
+
+      forceUpdate()
+    }
+
     const touched = () => {
       for (const name of fieldNames()) {
         if (_fields[name].touched) {
@@ -364,7 +378,7 @@ export function useForm<
       forceUpdate()
     }
 
-    const add = (fields: FieldDefs<T, TValidationResult>) => {
+    const addField = (fields: FieldDefs<T, TValidationResult>) => {
       for (const name of Object.keys(fields)) {
         _defs[name as FieldName<T>] = fields[name]
       }
@@ -372,7 +386,7 @@ export function useForm<
       forceUpdate()
     }
 
-    const remove = (fields: FieldsList<T>) => {
+    const removeField = (fields: FieldsList<T>) => {
       if (typeof fields === 'string') {
         fields = [fields]
       }
@@ -401,6 +415,10 @@ export function useForm<
       setErrorsInternal('warn', errors)
     }
 
+    const setSilent = (value: boolean) => {
+      silent.current = value
+    }
+
     const form = {
       fields: proxy as Fields<T>,
       validate,
@@ -414,10 +432,12 @@ export function useForm<
       setErrors,
       setWarns,
       reset,
-      remove,
-      add,
-      focusInvalidField
-    }
+      removeField,
+      addField,
+      focusInvalidField,
+      setSilent,
+      subformValidate
+    } as InternalForm<T>
 
     return form as Form<T>
   }, deps)
