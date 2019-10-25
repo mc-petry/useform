@@ -29,19 +29,13 @@ export function useChildForm<T extends { [key: string]: any } | string>(
     const value = field.value![index]
     isComplex.current = typeof value === 'object'
 
-    if (silent) {
-      childForm.setSilent(true)
-    }
-
+    childForm.setSilent(true)
     child.setValues(
       isComplex.current
         ? field.value![index] as any
         : { index: field.value![index] }
     )
-
-    if (silent) {
-      childForm.setSilent(false)
-    }
+    childForm.setSilent(false)
   }, [field.value![index]])
 
   if (isFirstRender.current) {
@@ -78,7 +72,9 @@ export function useChildForm<T extends { [key: string]: any } | string>(
               }
               : value
 
-            field.onChange(parent)
+            if (!silent) {
+              field.onChange(parent)
+            }
             child.fields[name].onChange(value)
           }
         }

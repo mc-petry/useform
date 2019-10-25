@@ -103,13 +103,13 @@ export function useForm<
         const validateFn = def.validate || _opts.validationSchema && _opts.validationSchema[name] as ValidateFn<any, any, any>
         const warnFn = def.warn
 
-        if (validateFn) {
-          field.error = transformError(field, callValidate(validateFn, field.value, _fields))
-        }
+        field.error = validateFn
+          ? transformError(field, callValidate(validateFn, field.value, _fields))
+          : null
 
-        if (warnFn) {
-          field.warn = transformError(field, callValidate(warnFn, field.value, _fields))
-        }
+        field.warn = warnFn
+          ? transformError(field, callValidate(warnFn, field.value, _fields))
+          : null
 
         // Validate dependent fields
         let dependent = def.dependent
