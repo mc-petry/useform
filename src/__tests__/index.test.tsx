@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react-hooks'
 import { InternalField, Field } from '../fields'
 import { memoField } from '../memo-field'
 import React from 'react'
+import { delay } from './utils'
 
 interface UserDTO {
   name?: string
@@ -48,15 +49,15 @@ test('Field state after actions', () => {
   const { result } = renderHook(() => useForm<UserDTO>())
   const { name } = result.current.fields
 
-  act(() => name.onFocus())
+  act(() => { name.onFocus() })
   expect(name.touched).toBe(true)
 
-  act(() => name.onChange('Adelina'))
+  act(() => { name.onChange('Adelina') })
   expect(name.dirty).toBe(true)
 })
 
 describe('Field actions', () => {
-  test('Validate', () => {
+  test('Validate', async () => {
     const { result } = renderHook(() => useForm<UserDTO>(() => ({
       fields: {
         name: {
@@ -68,16 +69,24 @@ describe('Field actions', () => {
 
     const { name } = result.current.fields
 
-    act(() => name.onChange('Olga'))
+    await act(async () => {
+      name.onChange('Olga')
+      await delay()
+    })
+
     expect(name.error).toBe(null)
     expect(name.warn).toBe(null)
 
-    act(() => name.onBlur())
+    await act(async () => {
+      name.onBlur()
+      await delay()
+    })
+
     expect(name.error).toBe('required')
     expect(name.warn).toBe('required')
   })
 
-  test('Validate array', () => {
+  test('Validate array', async () => {
     const { result } = renderHook(() => useForm<UserDTO>(() => ({
       fields: {
         age: {
@@ -91,17 +100,23 @@ describe('Field actions', () => {
 
     const { fields: { age }, setValues, validate } = result.current
 
-    act(() => { validate() })
+    await act(async () => { await validate() })
     expect(age.error).toBe('required')
 
-    act(() => setValues({ age: 17 }, true))
+    await act(async () => {
+      setValues({ age: 17 }, true)
+      await delay()
+    })
     expect(age.error).toBe('too-young')
 
-    act(() => setValues({ age: 21 }, true))
+    await act(async () => {
+      setValues({ age: 21 }, true)
+      await delay()
+    })
     expect(age.error).toBeNull()
   })
 
-  test('Validate with validateOnChange', () => {
+  test('Validate with validateOnChange', async () => {
     const { result } = renderHook(() => useForm<UserDTO>(() => ({
       fields: {
         name: {
@@ -114,12 +129,16 @@ describe('Field actions', () => {
 
     const { name } = result.current.fields
 
-    act(() => name.onChange('Olga'))
+    await act(async () => {
+      name.onChange('Olga')
+      await delay()
+    })
+
     expect(name.error).toBe('required')
     expect(name.warn).toBe('required')
   })
 
-  test('Validate with form validateOnChange', () => {
+  test('Validate with form validateOnChange', async () => {
     const { result } = renderHook(() => useForm<UserDTO>(() => ({
       fields: {
         name: {
@@ -132,20 +151,45 @@ describe('Field actions', () => {
 
     const { name } = result.current.fields
 
-    act(() => name.onChange('Olga'))
+    await act(async () => {
+      name.onChange('Olga')
+      await delay()
+    })
+
     expect(name.error).toBe('required')
     expect(name.warn).toBe('required')
   })
 
-  test('Validate without validateFn', () => {
+  test('Validate without validateFn', async () => {
     const { result: { current: form } } = renderHook(() => useForm<UserDTO>())
 
-    act(() => {
+    await act(async () => {
       form.setErrors({ name: 'invalid' })
-      form.validate()
+      await form.validate()
     })
 
     expect(form.fields.name.error).toBeNull()
+  })
+
+  test('Validate async', async () => {
+    const { result: { current: form } } = renderHook(() => useForm<UserDTO>(() => ({
+      validationSchema: {
+        name: [
+          v => !v && 'required',
+          async v => {
+            await delay(100)
+            return 'async'
+          }
+        ]
+      },
+      initialValues: {
+        name: 'Yamaha'
+      }
+    })))
+
+    await act(async () => { await form.validate() })
+
+    expect(form.fields.name.error).toBe('async')
   })
 
   test('Set values', () => {
@@ -157,7 +201,7 @@ describe('Field actions', () => {
       name: 'John'
     }
 
-    act(() => form.setValues(values))
+    act(() => { form.setValues(values) })
 
     expect(form.getValues()).toEqual(values)
   })
@@ -166,15 +210,15 @@ describe('Field actions', () => {
     const { result } = renderHook(() => useForm<UserDTO>())
     const form = result.current
 
-    act(() => form.setErrors({ age: 'required' }))
-    act(() => form.setWarns({ name: 'empty' }))
+    act(() => { form.setErrors({ age: 'required' }) })
+    act(() => { form.setWarns({ name: 'empty' }) })
     expect(form.fields.age.error).toBe('required')
     expect(form.fields.name.warn).toBe('empty')
   })
 })
 
 describe('Form options', () => {
-  test('Validation schema', () => {
+  test('Validation schema', async () => {
     const { result: { current: form } } = renderHook(() => useForm<UserDTO>(() => ({
       fields: {
         age: {
@@ -187,7 +231,7 @@ describe('Form options', () => {
       }
     })))
 
-    act(() => { form.validate() })
+    await act(async () => { await form.validate() })
 
     expect(form.fields.age.error).toBe('required')
     expect(form.fields.name.error).toBe('required')
@@ -195,7 +239,7 @@ describe('Form options', () => {
 })
 
 describe('Children forms', () => {
-  test('Object', () => {
+  test('Object', async () => {
     interface UserData {
       name: string
     }
@@ -220,9 +264,11 @@ describe('Children forms', () => {
       }
     })))
 
-    const { result: { current: proxy } } = renderHook(() => useChildForm(0, parent.fields.users, child))
+    const { result: { current: proxy }, rerender } = renderHook(() => useChildForm(0, parent.fields.users, child))
 
-    act(() => { parent.validate() })
+    rerender()
+
+    await act(async () => { await parent.validate() })
 
     expect(proxy.fields.name.value).toBe('John')
     expect(proxy.fields.name.error).toBe('min-length')

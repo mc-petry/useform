@@ -37,10 +37,10 @@ const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 
 
 export type FormOptionsInitializer<T, TValidationResult> = FormOptions<T, TValidationResult> | (() => FormOptions<T, TValidationResult>)
 
-function callValidate<T>(fn: ValidateFn<any, T, any>, value: any, fields: Fields<T>) {
+async function callValidate<T>(fn: ValidateFn<any, T, any>, value: any, fields: Fields<T>) {
   if (Array.isArray(fn)) {
     for (const f of fn) {
-      const result = f(value, fields)
+      const result = await f(value, fields)
 
       if (result) {
         return result
@@ -90,7 +90,7 @@ export function useForm<
         : null
     }
 
-    const validateField = (name: keyof T) => {
+    const validateField = async (name: keyof T) => {
       const field = _fields[name]
       const def = _defs[name]
 
@@ -104,11 +104,11 @@ export function useForm<
         const warnFn = def.warn
 
         field.error = validateFn
-          ? transformError(field, callValidate(validateFn, field.value, _fields))
+          ? transformError(field, await callValidate(validateFn, field.value, _fields))
           : null
 
         field.warn = warnFn
-          ? transformError(field, callValidate(warnFn, field.value, _fields))
+          ? transformError(field, await callValidate(warnFn, field.value, _fields))
           : null
 
         // Validate dependent fields
@@ -121,14 +121,14 @@ export function useForm<
 
           for (const dep of dependent) {
             if (_fields[dep].touched) {
-              validateField(dep)
+              await validateField(dep)
             }
           }
         }
       }
     }
 
-    const handleChange = (name: keyof T, value: any) => {
+    const handleChange = async (name: keyof T, value: any) => {
       const field = _fields[name]
 
       field.value = value
@@ -142,7 +142,7 @@ export function useForm<
         : _opts.validateOnChange
 
       if (validateOnChange) {
-        validateField(name)
+        await validateField(name)
       }
 
       // Handle changed event
@@ -280,13 +280,13 @@ export function useForm<
       }
     }
 
-    const validate = (fields: FieldsList<T> = fieldNames()) => {
+    const validate = async (fields: FieldsList<T> = fieldNames()) => {
       if (typeof fields === 'string') {
         fields = [fields]
       }
 
       for (const field of fields) {
-        validateField(field)
+        await validateField(field)
       }
 
       const err = hasError(fields)
@@ -300,9 +300,9 @@ export function useForm<
       return !err
     }
 
-    const subformValidate = () => {
+    const subformValidate = async () => {
       for (const field of fieldNames()) {
-        validateField(field)
+        await validateField(field)
       }
 
       forceUpdate()

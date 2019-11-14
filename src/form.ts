@@ -13,7 +13,7 @@ export interface Form<T extends { [key: string]: any } = any> {
    * Validates specific field(s)
    * @returns `true` when form validates successfully
    */
-  validate: (fields?: FieldsList<T>) => boolean
+  validate: (fields?: FieldsList<T>) => Promise<boolean>
 
   /**
    * Handles form submit. Typically should be passed into `<form>`

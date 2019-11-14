@@ -1,8 +1,9 @@
 import { Fields } from './fields'
 import { Form, ValidationResult } from './form'
 
-export type ValidateSignle<V, T, R> = (value: V | undefined, fields: Fields<T>) => R | false | undefined
-export type ValidateFn<V, T, R> = ValidateSignle<V, T, R> | ValidateSignle<V, T, R>[]
+export type ValidateResult<R> = R | false | undefined
+export type ValidateSingle<V, T, R> = (value: V | undefined, fields: Fields<T>) => ValidateResult<R> | PromiseLike<ValidateResult<R>>
+export type ValidateFn<V, T, R> = ValidateSingle<V, T, R> | ValidateSingle<V, T, R>[]
 export type ChangedFn<V> = (newValue: V | undefined) => void
 export type ValidationSchema<T = any, TValidationResult = ValidationResult> = {
   [P in keyof T]?: ValidateFn<T[P], T, TValidationResult>
