@@ -351,10 +351,10 @@ export function useForm<
       }
     }
 
-    const handleSubmit = (e: React.SyntheticEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
       e.preventDefault()
 
-      const success = validate()
+      const success = await validate()
 
       if (success && _opts.submit) {
         _opts.submit(getValues())

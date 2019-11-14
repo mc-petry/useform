@@ -18,7 +18,7 @@ export interface Form<T extends { [key: string]: any } = any> {
   /**
    * Handles form submit. Typically should be passed into `<form>`
    */
-  handleSubmit: (e: React.SyntheticEvent<Element, Event>) => void
+  handleSubmit: (e: React.SyntheticEvent<Element, Event>) => Promise<void>
 
   /**
    * Gets a value that indicates whether the form has error

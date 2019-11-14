@@ -192,6 +192,24 @@ describe('Field actions', () => {
     expect(form.fields.name.error).toBe('async')
   })
 
+  test('Handle submit when errors', async () => {
+    let submitted = false
+
+    const { result: { current: form } } = renderHook(() => useForm<UserDTO>(() => ({
+      validationSchema: {
+        name: v => !v && 'required'
+      },
+      submit: () => submitted = true
+    })))
+
+    await act(async () => {
+      form.handleSubmit({ preventDefault: () => undefined } as any)
+      await delay()
+    })
+
+    expect(submitted).toBe(false)
+  })
+
   test('Set values', () => {
     const { result } = renderHook(() => useForm<UserDTO>())
     const form = result.current
