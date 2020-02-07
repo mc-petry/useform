@@ -161,7 +161,7 @@ export function useForm<
       forceUpdate()
     }
 
-    const handleBlur = (name: keyof T) => {
+    const handleBlur = async (name: keyof T) => {
       if (!_fields[name].dirty) {
         return
       }
@@ -173,7 +173,7 @@ export function useForm<
         : _opts.validateOnBlur!
 
       if (validateOnBlur) {
-        validateField(name)
+        await validateField(name)
       }
 
       forceUpdate()
