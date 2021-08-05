@@ -1,6 +1,6 @@
 {
   "name": "@mc-petry/useform",
-  "version": "2.1",
+  "version": "2.1.0",
   "description": "React form hook",
   "main": "dist/index.js",
   "typings": "dist/index",
