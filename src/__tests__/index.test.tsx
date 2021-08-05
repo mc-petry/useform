@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Field, InternalField } from '../fields'
 import { formFactory, useChildForm, useForm } from '../index'
 import { memoField } from '../memo-field'
@@ -363,10 +363,14 @@ describe('Children forms', () => {
 
 describe('Create factory', () => {
   test('Default transformers', async () => {
-    const useForm = formFactory<{ result: string }>({
-      transformers: {
-        error: v => `global-${v.result}`,
-      },
+    const useForm = formFactory<{ result: string }>(() => {
+      const hook = useMemo(() => 'hook', [])
+
+      return {
+        transformers: {
+          error: v => `global-${v.result}-${hook}`,
+        },
+      }
     })
 
     const { result } = renderHook(() =>
@@ -381,14 +385,16 @@ describe('Create factory', () => {
       await result.current.validate()
     })
 
-    expect(result.current.fields.name.error).toBe('global-error')
+    expect(result.current.fields.name.error).toBe('global-error-hook')
   })
 
   test('Override default transformers', async () => {
-    const useForm = formFactory<{ result: string }>({
-      transformers: {
-        error: v => `global-${v.result}`,
-      },
+    const useForm = formFactory<{ result: string }>(() => {
+      return {
+        transformers: {
+          error: v => `global-${v.result}`,
+        },
+      }
     })
 
     const { result } = renderHook(() =>

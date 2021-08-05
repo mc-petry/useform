@@ -3,29 +3,27 @@ import { FormOptionsInitializer, FormTransformers, useForm } from '.'
 import { ValidationResult } from './form'
 
 interface FactoryProps<TValidationResult> {
-  /**
-   * Set default transformers
-   */
+  validateOnBlur?: boolean
+  validateOnChange?: boolean
   transformers?: FormTransformers<Record<string, any>, TValidationResult>
 }
 
 /**
- * Creates a custom form factory where you can set default transformers
+ * Creates a custom form factory where you can set default form options
  * and define validation result type
  */
-export function formFactory<TValidationResult = ValidationResult>({
-  transformers,
-}: FactoryProps<TValidationResult> = {}) {
+export function formFactory<TValidationResult = ValidationResult>(fn?: () => FactoryProps<TValidationResult>) {
   return function <TFields extends { [key: string]: any }>(
     optionsInitializer: FormOptionsInitializer<TFields, TValidationResult>,
     deps: any[] = []
   ) {
+    const overrides = fn ? fn() : {}
     const options = useMemo(() => {
       const opts = typeof optionsInitializer === 'function' ? optionsInitializer() : optionsInitializer
 
-      if (transformers) {
+      if (overrides.transformers) {
         opts.transformers = {
-          ...transformers,
+          ...overrides.transformers,
           ...opts.transformers,
         }
       }
