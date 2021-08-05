@@ -1,6 +1,6 @@
-import { Form, InternalForm } from './form'
-import { useEffect, useMemo, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Field, InternalField } from './fields'
+import { Form, InternalForm } from './form'
 
 export interface PrimitiveFormFields<T> {
   index: T
@@ -30,11 +30,7 @@ export function useChildForm<T extends { [key: string]: any } | string>(
     isComplex.current = typeof value === 'object'
 
     childForm.setSilent(true)
-    child.setValues(
-      isComplex.current
-        ? field.value![index] as any
-        : { index: field.value![index] }
-    )
+    child.setValues(isComplex.current ? (field.value![index] as any) : { index: field.value![index] })
     childForm.setSilent(false)
   }, [field.value![index]])
 
@@ -50,10 +46,10 @@ export function useChildForm<T extends { [key: string]: any } | string>(
 
   // Add child form to parent one
   useEffect(() => {
-    (field as InternalField).addChildForm(child as Form)
+    ;(field as InternalField).addChildForm(child as Form)
 
     return () => {
-      (field as InternalField).removeChildForm(child as Form)
+      ;(field as InternalField).removeChildForm(child as Form)
     }
   }, [])
 
@@ -67,35 +63,29 @@ export function useChildForm<T extends { [key: string]: any } | string>(
 
             parent[index] = isComplex.current
               ? {
-                ...parent[index] as {},
-                [name]: value
-              }
+                  ...(parent[index] as {}),
+                  [name]: value,
+                }
               : value
 
             if (!silent) {
               field.onChange(parent)
             }
             child.fields[name].onChange(value)
-          }
+          },
         }
-      }
+      },
     })
 
     return {
       ...child,
-      fields
+      fields,
     }
   }, [field, child.fields])
 
   return proxy as Pick<
     typeof child,
-    'fields' |
-    'hasError' |
-    'hasWarn' |
-    'touched' |
-    'dirty' |
-    'getValues' |
-    'focusInvalidField'
+    'fields' | 'hasError' | 'hasWarn' | 'touched' | 'dirty' | 'getValues' | 'focusInvalidField'
   >
 }
 

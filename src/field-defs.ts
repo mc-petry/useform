@@ -1,8 +1,11 @@
 import { Fields } from './fields'
-import { Form, ValidationResult } from './form'
+import { ValidationResult } from './form'
 
 export type ValidateResult<R> = R | false | undefined
-export type ValidateSingle<V, T, R> = (value: V | undefined, fields: Fields<T>) => ValidateResult<R> | PromiseLike<ValidateResult<R>>
+export type ValidateSingle<V, T, R> = (
+  value: V | undefined,
+  fields: Fields<T>
+) => ValidateResult<R> | PromiseLike<ValidateResult<R>>
 export type ValidateFn<V, T, R> = ValidateSingle<V, T, R> | ValidateSingle<V, T, R>[]
 export type ChangedFn<V> = (newValue: V | undefined) => void
 export type ValidationSchema<T = any, TValidationResult = ValidationResult> = {
@@ -33,7 +36,7 @@ export interface FieldDef<TValue, TFields, TValidationResult> {
   /**
    * Dependent fields that must be validated after this field
    */
-  dependent?: ReadonlyArray<Extract<keyof TFields, string>> | (Extract<keyof TFields, string>)
+  dependent?: ReadonlyArray<Extract<keyof TFields, string>> | Extract<keyof TFields, string>
 
   /**
    * Overrides default form behaviour for specific field

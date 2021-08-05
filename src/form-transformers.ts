@@ -6,15 +6,10 @@ export interface FormTransformers<T, TValidationResult> {
   /**
    * Transforms error
    */
-  error?: (
-    error: TValidationResult,
-    field: Field<InferValue<T>, Extract<keyof T, string>>
-  ) => any
+  error?: (error: TValidationResult, field: Field<InferValue<T>, Extract<keyof T, string>>) => any
 
   /**
    * Transforms label
    */
-  label?: (
-    name: Extract<keyof T, string>
-  ) => any
+  label?: (name: Extract<keyof T, string>) => any
 }

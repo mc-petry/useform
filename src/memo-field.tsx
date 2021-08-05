@@ -1,4 +1,4 @@
-import React, { ComponentType, Component } from 'react'
+import React, { Component, ComponentType } from 'react'
 import { Field } from '.'
 import { isFieldEqual } from './utils'
 
@@ -21,9 +21,7 @@ export function memoField<T, P extends { field: Field }>(FieldComponent: Compone
       // Save latest field props
       this._field = { ...this.props.field }
 
-      return <FieldComponent
-        {...this.props as any}
-      />
+      return <FieldComponent {...(this.props as any)} />
     }
   } as any
 }

@@ -60,13 +60,11 @@ type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
 }
 
-export type InternalField<T = any, P extends keyof T = any> =
-  Mutable<Field<T[P], Extract<P, string>>> & {
-    forms: Form[]
-    addChildForm: (form: Form) => void
-    removeChildForm: (form: Form) => void
-  }
-
+export type InternalField<T = any, P extends keyof T = any> = Mutable<Field<T[P], Extract<P, string>>> & {
+  forms: Form[]
+  addChildForm: (form: Form) => void
+  removeChildForm: (form: Form) => void
+}
 
 export type MutableFields<T extends { [key: string]: any }> = {
   [P in keyof T]-?: InternalField<T, P>

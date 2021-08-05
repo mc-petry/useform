@@ -1,5 +1,5 @@
+import { FieldDef, FieldDefs, ValidationSchema } from './field-defs'
 import { FormTransformers } from './form-transformers'
-import { FieldDefs, FieldDef, ValidationSchema } from './field-defs'
 
 export interface FormOptions<T, TValidationResult> {
   /**

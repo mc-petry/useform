@@ -1,7 +1,11 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "jira-plugin.workingProject": "",
   "files.exclude": {
     "site": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true
   }
 }

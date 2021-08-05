@@ -1,5 +1,5 @@
-import { Fields } from './fields'
 import { FieldDefs } from './field-defs'
+import { Fields } from './fields'
 
 export type ValidationResult = any
 export type FieldName<T> = Extract<keyof T, string>
