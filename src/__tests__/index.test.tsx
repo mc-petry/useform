@@ -1,8 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import React, { useMemo } from 'react'
-import { Field, InternalField } from '../fields'
-import { formFactory, useChildForm, useForm } from '../index'
-import { memoField } from '../memo-field'
+import { useMemo } from 'react'
+import { formFactory, useForm } from '../index'
+import { useFormChild } from '../use-form-child'
 import { delay } from './utils'
 
 interface UserDTO {
@@ -20,8 +19,7 @@ describe('Initial field state', () => {
       })
     )
     const { name, age } = result.current.fields
-    const { ref, onBlur, onChange, onFocus, addChildForm, removeChildForm, forms, ...fieldState } =
-      name as InternalField
+    const { ref, onBlur, onChange, onFocus, addForm, removeForm, forms, ...fieldState } = name
     const state: typeof fieldState = {
       name: 'name',
       label: undefined,
@@ -38,11 +36,11 @@ describe('Initial field state', () => {
 
   test('Label transformer', () => {
     const { result } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         transformers: {
           label: name => name[0].toUpperCase() + name.substr(1),
         },
-      }))
+      })
     )
     const { age } = result.current.fields
 
@@ -68,14 +66,14 @@ test('Field state after actions', () => {
 describe('Field actions', () => {
   test('Validate', async () => {
     const { result } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         fields: {
           name: {
             validate: value => value !== 'Adelina' && 'required',
             warn: value => value !== 'Adelina' && 'required',
           },
         },
-      }))
+      })
     )
 
     const { name } = result.current.fields
@@ -99,13 +97,13 @@ describe('Field actions', () => {
 
   test('Validate array', async () => {
     const { result } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         fields: {
           age: {
             validate: [value => !value && 'required', value => value! < 18 && 'too-young'],
           },
         },
-      }))
+      })
     )
 
     const {
@@ -134,7 +132,7 @@ describe('Field actions', () => {
 
   test('Validate with validateOnChange', async () => {
     const { result } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         fields: {
           name: {
             validate: value => value !== 'Adelina' && 'required',
@@ -142,7 +140,7 @@ describe('Field actions', () => {
             validateOnChange: true,
           },
         },
-      }))
+      })
     )
 
     const { name } = result.current.fields
@@ -158,7 +156,7 @@ describe('Field actions', () => {
 
   test('Validate with form validateOnChange', async () => {
     const { result } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         fields: {
           name: {
             validate: value => value !== 'Adelina' && 'required',
@@ -166,7 +164,7 @@ describe('Field actions', () => {
           },
         },
         validateOnChange: true,
-      }))
+      })
     )
 
     const { name } = result.current.fields
@@ -197,7 +195,7 @@ describe('Field actions', () => {
     const {
       result: { current: form },
     } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         validationSchema: {
           name: [
             v => !v && 'required',
@@ -210,7 +208,7 @@ describe('Field actions', () => {
         initialValues: {
           name: 'Yamaha',
         },
-      }))
+      })
     )
 
     await act(async () => {
@@ -226,12 +224,12 @@ describe('Field actions', () => {
     const {
       result: { current: form },
     } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         validationSchema: {
           name: v => !v && 'required',
         },
         submit: () => (submitted = true),
-      }))
+      })
     )
 
     await act(async () => {
@@ -278,7 +276,7 @@ describe('Form options', () => {
     const {
       result: { current: form },
     } = renderHook(() =>
-      useForm<UserDTO>(() => ({
+      useForm<UserDTO>({
         fields: {
           age: {
             validate: v => !v && 'required',
@@ -288,7 +286,7 @@ describe('Form options', () => {
           age: v => !v && 'schema-required',
           name: v => !v && 'required',
         },
-      }))
+      })
     )
 
     await act(async () => {
@@ -313,29 +311,29 @@ describe('Children forms', () => {
     const {
       result: { current: parent },
     } = renderHook(() =>
-      useForm<FormData>(() => ({
+      useForm<FormData>({
         initialValues: {
           users: [{ name: 'John' }],
         },
-      }))
+      })
     )
 
     const {
       result: { current: child },
     } = renderHook(() =>
-      useForm<UserData>(() => ({
+      useForm<UserData>({
         fields: {
           name: {
             validate: v => v && v.length < 10 && 'min-length',
           },
         },
-      }))
+      })
     )
 
     const {
       result: { current: proxy },
       rerender,
-    } = renderHook(() => useChildForm(0, parent.fields.users, child))
+    } = renderHook(() => useFormChild(0, parent.fields.users, child))
 
     rerender()
 
@@ -374,11 +372,11 @@ describe('Create factory', () => {
     })
 
     const { result } = renderHook(() =>
-      useForm<{ name: string }>(() => ({
+      useForm<{ name: string }>({
         validationSchema: {
           name: v => !v && { result: 'error' },
         },
-      }))
+      })
     )
 
     await act(async () => {
@@ -398,14 +396,14 @@ describe('Create factory', () => {
     })
 
     const { result } = renderHook(() =>
-      useForm<{ name: string }>(() => ({
+      useForm<{ name: string }>({
         validationSchema: {
           name: v => !v && { result: 'error' },
         },
         transformers: {
           error: v => v.result,
         },
-      }))
+      })
     )
 
     await act(async () => {
@@ -413,13 +411,5 @@ describe('Create factory', () => {
     })
 
     expect(result.current.fields.name.error).toBe('error')
-  })
-})
-
-describe('Utils', () => {
-  test('Memo field', () => {
-    memoField(({}: { field: Field; other: any }) => {
-      return <div />
-    })
   })
 })

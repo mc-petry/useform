@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { FormOptionsInitializer, FormTransformers, useForm } from '.'
-import { ValidationResult } from './form'
+import { FormOptions, FormTransformers, useForm } from '.'
+import { ValidationResultDefault } from './models/field-definition'
 
 interface FactoryProps<TValidationResult> {
   validateOnBlur?: boolean
@@ -9,26 +9,23 @@ interface FactoryProps<TValidationResult> {
 }
 
 /**
- * Creates a custom form factory where you can set default form options
- * and define validation result type
+ * Returns a custom factory where you can set default form behaviour.
  */
-export function formFactory<TValidationResult = ValidationResult>(fn?: () => FactoryProps<TValidationResult>) {
+export function formFactory<TValidationResult = ValidationResultDefault>(fn?: () => FactoryProps<TValidationResult>) {
   return function <TFields extends { [key: string]: any }>(
-    optionsInitializer: FormOptionsInitializer<TFields, TValidationResult>,
+    defaults: FormOptions<TFields, TValidationResult> = {},
     deps: any[] = []
   ) {
     const overrides = fn ? fn() : {}
     const options = useMemo(() => {
-      const opts = typeof optionsInitializer === 'function' ? optionsInitializer() : optionsInitializer
-
       if (overrides.transformers) {
-        opts.transformers = {
+        defaults.transformers = {
           ...overrides.transformers,
-          ...opts.transformers,
+          ...defaults.transformers,
         }
       }
 
-      return opts
+      return defaults
     }, deps)
 
     return useForm<TFields>(options, deps)

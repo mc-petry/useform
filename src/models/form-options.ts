@@ -1,11 +1,11 @@
-import { FieldDef, FieldDefs, ValidationSchema } from './field-defs'
+import { FieldDefinition, FieldDefinitions, ValidationSchema } from './field-definition'
 import { FormTransformers } from './form-transformers'
 
 export interface FormOptions<T, TValidationResult> {
   /**
    * Fields definitions
    */
-  fields?: Partial<FieldDefs<T, TValidationResult>>
+  fields?: Partial<FieldDefinitions<T, TValidationResult>>
 
   /**
    * Submission handler. Will not be called if there are errors
@@ -34,7 +34,7 @@ export interface FormOptions<T, TValidationResult> {
   /**
    * Dynamic field configuration
    */
-  fieldConfig?: (fieldName: string) => FieldDef<any, T, TValidationResult> | undefined
+  fieldConfig?: (fieldName: string) => FieldDefinition<any, T, TValidationResult> | undefined
 
   /**
    * Initial field values
@@ -43,7 +43,7 @@ export interface FormOptions<T, TValidationResult> {
 
   /**
    * Validation scheme.
-   * Has lower prioritet than [field].validate
+   * Has lower priority than [field].validate
    */
   validationSchema?: ValidationSchema<T, TValidationResult>
 }

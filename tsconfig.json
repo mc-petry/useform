@@ -1,14 +1,23 @@
 {
-  "extends": "./tsconfig.base",
   "compilerOptions": {
-    "outDir": "./dist",
-    "target": "es5",
-    "downlevelIteration": true
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["vite/client", "@emotion/react/types/css-prop"],
+    "allowJs": false,
+    "skipLibCheck": false,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "@emotion/react",
+    "stripInternal": true
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./src/__tests__"
-  ]
+  "include": ["./src"],
+  "exclude": ["./src/__tests__"]
 }

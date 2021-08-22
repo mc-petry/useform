@@ -7,5 +7,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": true,
     "source.organizeImports": true
-  }
+  },
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.format.semicolons": "remove"
 }

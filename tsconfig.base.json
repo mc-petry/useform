@@ -11,10 +11,7 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "lib": [
-      "dom",
-      "esnext"
-    ],
+    "lib": ["dom", "esnext"],
     "plugins": [
       {
         "name": "typescript-tslint-plugin"
