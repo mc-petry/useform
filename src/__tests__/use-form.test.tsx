@@ -1,7 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import { useMemo } from 'react'
 import { formFactory, useForm } from '../index'
-import { useFormChild } from '../use-form-child'
 import { delay } from './utils'
 
 interface UserDTO {
@@ -9,8 +8,8 @@ interface UserDTO {
   age: number
 }
 
-describe('Initial field state', () => {
-  test('Default', () => {
+describe('Creation', () => {
+  test('Initial field values', () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
         initialValues: {
@@ -34,37 +33,54 @@ describe('Initial field state', () => {
     expect(age.value).toEqual(18)
   })
 
-  test('Label transformer', () => {
-    const { result } = renderHook(() =>
-      useForm<UserDTO>({
-        transformers: {
-          label: name => name[0].toUpperCase() + name.substr(1),
-        },
-      })
-    )
-    const { age } = result.current.fields
+  describe('Transformers', () => {
+    test('Label', () => {
+      const { result } = renderHook(() =>
+        useForm<UserDTO>({
+          transformers: {
+            label: name => name[0].toUpperCase() + name.substr(1),
+          },
+        })
+      )
+      const { age } = result.current.fields
+      expect(age.label).toBe('Age')
+    })
 
-    expect(age.label).toBe('Age')
+    test('Error', () => {
+      expect(1).toBe(1)
+    })
   })
 })
 
-test('Field state after actions', () => {
-  const { result } = renderHook(() => useForm<UserDTO>())
-  const { name } = result.current.fields
+describe('Events', () => {
+  const { result } = renderHook(() =>
+    useForm<UserDTO>({
+      validationSchema: {
+        age: v => !v && 'required',
+      },
+    })
+  )
+  const { name, age } = result.current.fields
 
-  act(() => {
-    name.onFocus()
+  test('onChange', () => {
+    act(() => name.onChange('Adelina'))
+    expect(name.dirty).toBe(true)
+    expect(name.value).toBe('Adelina')
   })
-  expect(name.touched).toBe(true)
 
-  act(() => {
-    name.onChange('Adelina')
+  test('onFocus', () => {
+    act(() => name.onFocus())
+    expect(name.touched).toBe(true)
   })
-  expect(name.dirty).toBe(true)
+
+  test('onBlur', () => {
+    act(() => name.onBlur())
+    expect(age.error).not.toBeNull()
+  })
 })
 
-describe('Field actions', () => {
-  test('Validate', async () => {
+describe('Actions', () => {
+  test('validate', async () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
         fields: {
@@ -100,7 +116,11 @@ describe('Field actions', () => {
       useForm<UserDTO>({
         fields: {
           age: {
-            validate: [value => !value && 'required', value => value! < 18 && 'too-young'],
+            validate: [
+              //
+              value => !value && 'required',
+              value => value! < 18 && 'too-young',
+            ],
           },
         },
       })
@@ -298,67 +318,7 @@ describe('Form options', () => {
   })
 })
 
-describe('Children forms', () => {
-  test('Object', async () => {
-    interface UserData {
-      name: string
-    }
-
-    interface FormData {
-      users: UserData[]
-    }
-
-    const {
-      result: { current: parent },
-    } = renderHook(() =>
-      useForm<FormData>({
-        initialValues: {
-          users: [{ name: 'John' }],
-        },
-      })
-    )
-
-    const {
-      result: { current: child },
-    } = renderHook(() =>
-      useForm<UserData>({
-        fields: {
-          name: {
-            validate: v => v && v.length < 10 && 'min-length',
-          },
-        },
-      })
-    )
-
-    const {
-      result: { current: proxy },
-      rerender,
-    } = renderHook(() => useFormChild(0, parent.fields.users, child))
-
-    rerender()
-
-    await act(async () => {
-      await parent.validate()
-    })
-
-    expect(proxy.fields.name.value).toBe('John')
-    expect(proxy.fields.name.error).toBe('min-length')
-
-    act(() => {
-      proxy.fields.name.onChange('Jesika')
-    })
-
-    expect(parent.fields.users.value).toEqual([{ name: 'Jesika' } as UserData])
-
-    act(() => {
-      parent.reset()
-    })
-
-    expect(proxy.fields.name.value).toBe(undefined)
-    expect(proxy.fields.name.error).toBe(null)
-  })
-})
-
+// TODO:
 describe('Create factory', () => {
   test('Default transformers', async () => {
     const useForm = formFactory<{ result: string }>(() => {

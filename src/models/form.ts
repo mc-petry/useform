@@ -51,6 +51,8 @@ export interface Form<T extends Record<string, any> = any> {
 
   /**
    * Sets fields values.
+   *
+   * @param validate Default - `true`
    */
   setValues: (values: Partial<T>, validate?: boolean | undefined) => void
 

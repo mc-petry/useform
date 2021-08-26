@@ -10,6 +10,11 @@ export function useFormChild<T extends Record<string, any>>(
 
   useEffect(() => {
     rootField.addForm(childForm as Form<any>)
+
+    if (rootField.value !== undefined && rootField.value[index] !== undefined) {
+      childForm.setValues(rootField.value[index])
+    }
+
     return () => {
       rootField.removeForm(childForm as Form<any>)
     }

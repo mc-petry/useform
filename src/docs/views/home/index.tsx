@@ -11,7 +11,7 @@ interface Address {
 export function VHome() {
   const { fields, getValues } = useForm<{ firstName: string; lastName: string; address: Address[] }>({
     validationSchema: {
-      address: v => (!v && 'required') || (v.length < 5 && 'min length'),
+      firstName: v => !v && 'required',
     },
     initialValues: {
       address: [
@@ -27,6 +27,7 @@ export function VHome() {
     <div>
       <div css={styles.intro}>Create strongly typed forms in a simplest way</div>
       <div css={styles.content}>
+        <input type="date" />
         <TextField field={fields.firstName} label="First Name" />
         <TextField field={fields.lastName} label="Last Name" />
         Home address:

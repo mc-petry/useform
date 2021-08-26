@@ -1,5 +1,4 @@
 import { css } from '@emotion/react'
-import { RefObject } from 'react'
 import { Field, useFieldWatch } from '../../../..'
 import { useFieldFocus } from '../../../../use-field-focus'
 import { FieldMessage } from '../field-message'
@@ -39,10 +38,10 @@ export function TextField({ field, label }: TextFieldProps) {
       </div>
       <input
         css={styles.field__input}
-        ref={field.ref as RefObject<HTMLInputElement>}
+        ref={field.ref as React.RefObject<HTMLInputElement>}
         value={field.value || ''}
         onChange={e => field.onChange(e.target.value)}
-        onFocus={() => field.onFocus()}
+        onFocus={field.onFocus}
         onBlur={field.onBlur}
         type="text"
       />

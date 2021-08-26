@@ -1,7 +1,11 @@
 {
-  "extends": "../../tsconfig.base",
   "compilerOptions": {
-    "module": "commonjs",
-    "noEmitHelpers": false
+    "target": "ESNext",
+    "types": ["@types/jest"],
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Node"
   }
 }

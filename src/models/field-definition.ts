@@ -1,12 +1,17 @@
+import { Fields } from './fields'
+
 export type FieldName<T> = Extract<keyof T, string>
 export type FieldNames<T> = FieldName<T>[] | FieldName<T>
 export type FieldErrors<T> = { [field in FieldName<T>]?: ValidationResultDefault }
 
 export type ValidationResultDefault = any
 export type ValidationResult<R> = R | false | undefined
-export type ValidationRule<V, T, R> = (value: V) => ValidationResult<R> | PromiseLike<ValidationResult<R>>
+export type ValidationRule<V, T, R> = (
+  value: V,
+  fields: Fields<T>
+) => ValidationResult<R> | Promise<ValidationResult<R>>
 export type ValidationRules<V, T, R> = ValidationRule<V, T, R> | ValidationRule<V, T, R>[]
-export type ValidationSchema<T = any, TValidationResult = ValidationResultDefault> = {
+export type ValidationSchema<T extends Record<string, any> = any, TValidationResult = ValidationResultDefault> = {
   [P in keyof T]?: ValidationRules<T[P], T, TValidationResult>
 }
 
@@ -33,7 +38,7 @@ export interface FieldDefinition<TValue, TFields, TValidationResult> {
   /**
    * Defines the dependent fields that must be validated after current field.
    */
-  dependent?: FieldName<TFields> | readonly FieldName<TFields>[]
+  dependent?: FieldNames<TFields>
 
   /**
    * Overrides default form behaviour for current field.

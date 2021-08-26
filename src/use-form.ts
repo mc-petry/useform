@@ -3,11 +3,6 @@ import { Field, FieldDefinitions, Fields, Form, FormOptions } from '.'
 import { FieldErrors, FieldName, FieldNames, ValidationResultDefault, ValidationRules } from './models/field-definition'
 import { Mutable } from './models/mutable'
 
-const INITIAL_FORM_OPTIONS: Omit<FormOptions<any, any>, 'fields'> = {
-  validateOnBlur: true,
-  validateOnChange: false,
-}
-
 const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 'value'> = {
   dirty: false,
   touched: false,
@@ -24,7 +19,7 @@ async function callValidate<T>(validation: ValidationRules<any, T, any>, value: 
   const fns = asArray(validation)
 
   for (const fn of fns) {
-    const result = await fn(value)
+    const result = await fn(value, fields)
 
     if (result) {
       return result
@@ -52,7 +47,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
   const res = useMemo(() => {
     const _defs = (options.fields || {}) as FieldDefinitions<T, TValidationResult>
     const _opts: Omit<FormOptions<T, any>, 'fields'> = {
-      ...INITIAL_FORM_OPTIONS,
+      validateOnBlur: true,
+      validateOnChange: false,
       ...options,
     }
 
@@ -70,11 +66,10 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
 
       if (field.forms) {
         for (const form of field.forms) {
-          await form.validate()
+          await form.validate(undefined, true)
         }
       } else {
-        const validateFn =
-          def.validate || (_opts.validationSchema && (_opts.validationSchema[name] as ValidationRules<any, any, any>))
+        const validateFn = def.validate || _opts.validationSchema?.[name]
         const warnFn = def.warn
 
         field.error = validateFn ? transformError(field, await callValidate(validateFn, field.value, _fields)) : null
@@ -159,14 +154,18 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
                 this.forms = []
               }
 
-              this.forms.push(form as Form)
+              this.forms.push(form)
             },
             removeForm: function (form) {
               if (!this.forms) {
-                this.forms = []
+                return
               }
 
               this.forms.splice(this.forms.indexOf(form), 1)
+
+              if (this.forms.length === 0) {
+                this.forms = undefined
+              }
             },
           }
 
@@ -345,6 +344,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       dirty,
       getValues,
       setValues,
+      //TODO
+      getErrors: {},
       setErrors,
       setWarns,
       reset,
