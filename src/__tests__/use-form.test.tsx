@@ -62,19 +62,20 @@ describe('Events', () => {
   )
   const { name, age } = result.current.fields
 
-  test('onChange', () => {
-    act(() => name.onChange('Adelina'))
+  test('onChange', async () => {
+    await act(async () => name.onChange('Adelina'))
     expect(name.dirty).toBe(true)
     expect(name.value).toBe('Adelina')
   })
 
-  test('onFocus', () => {
-    act(() => name.onFocus())
+  test('onFocus', async () => {
+    await act(async () => name.onFocus())
     expect(name.touched).toBe(true)
   })
 
-  test('onBlur', () => {
-    act(() => name.onBlur())
+  test('onBlur', async () => {
+    await act(async () => name.onBlur())
+    await delay()
     expect(age.error).not.toBeNull()
   })
 })

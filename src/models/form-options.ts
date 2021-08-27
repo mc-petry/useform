@@ -1,6 +1,7 @@
 import { FieldDefinition, FieldDefinitions, ValidationSchema } from './field-definition'
 import { FormTransformers } from './form-transformers'
 
+// TODO:
 export interface FormOptions<T, TValidationResult> {
   /**
    * Fields definitions
@@ -34,7 +35,7 @@ export interface FormOptions<T, TValidationResult> {
   /**
    * Dynamic field configuration
    */
-  fieldConfig?: (fieldName: string) => FieldDefinition<any, T, TValidationResult> | undefined
+  dynamic?: (fieldName: string) => FieldDefinition<any, T, TValidationResult> | undefined
 
   /**
    * Initial field values

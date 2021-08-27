@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks'
-import { useFormChild } from '..'
+import { useForm, useFormChild } from '..'
 
 describe('Children forms', () => {
   test('Object', async () => {
@@ -12,7 +12,7 @@ describe('Children forms', () => {
     }
 
     const {
-      result: { current: parent },
+      result: { current: root },
     } = renderHook(() =>
       useForm<FormData>({
         initialValues: {
@@ -34,30 +34,32 @@ describe('Children forms', () => {
     )
 
     const {
-      result: { current: proxy },
+      result: {
+        current: { fields },
+      },
       rerender,
-    } = renderHook(() => useFormChild(0, parent.fields.users, child))
+    } = renderHook(() => useFormChild(0, root.fields.users, child))
 
     rerender()
 
     await act(async () => {
-      await parent.validate()
+      await root.validate()
     })
 
-    expect(proxy.fields.name.value).toBe('John')
-    expect(proxy.fields.name.error).toBe('min-length')
+    expect(fields.name.value).toBe('John')
+    expect(fields.name.error).toBe('min-length')
 
     act(() => {
-      proxy.fields.name.onChange('Jesika')
+      fields.name.onChange('Jesika')
     })
 
-    expect(parent.fields.users.value).toEqual([{ name: 'Jesika' } as UserData])
+    expect(root.fields.users.value).toEqual([{ name: 'Jesika' } as UserData])
 
     act(() => {
-      parent.reset()
+      root.reset()
     })
 
-    expect(proxy.fields.name.value).toBe(undefined)
-    expect(proxy.fields.name.error).toBe(null)
+    expect(fields.name.value).toBe(undefined)
+    expect(fields.name.error).toBe(null)
   })
 })

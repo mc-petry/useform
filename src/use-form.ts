@@ -56,8 +56,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     const fieldNames = () => Object.keys(_fields) as FieldName<T>[]
 
     const transformError = (field: Field, error: any) => {
-      const transformers = _opts.transformers
-      return (error && transformers?.error?.(error, field)) || error || null
+      return (error && _opts.transformers?.error?.(error, field)) || error || null
     }
 
     const validateField = async (name: keyof T) => {
@@ -76,14 +75,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
         field.warn = warnFn ? transformError(field, await callValidate(warnFn, field.value, _fields)) : null
 
         // Validate dependent fields
-        let dependent = def.dependent
-
-        if (dependent) {
-          if (typeof dependent === 'string') {
-            dependent = [dependent]
-          }
-
-          for (const dep of dependent) {
+        if (def.dependent) {
+          for (const dep of asArray(def.dependent)) {
             if (_fields[dep].touched) {
               await validateField(dep)
             }
@@ -92,7 +85,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       }
     }
 
-    const handleChange = async (name: keyof T, value: any) => {
+    const handleFieldChange = async (name: keyof T, value: any) => {
       const field = _fields[name] as Mutable<Field>
 
       field.value = value
@@ -108,7 +101,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       }
     }
 
-    const handleFocus = (name: keyof T) => {
+    const handleFieldFocus = (name: keyof T) => {
       const field = _fields[name] as Mutable<Field>
 
       if (field.touched) {
@@ -119,14 +112,14 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       forceUpdate()
     }
 
-    const handleBlur = async (name: keyof T) => {
+    const handleFieldBlur = async (name: keyof T) => {
       if (!_fields[name].dirty) {
         return
       }
 
       const def = _defs[name]
 
-      const validateOnBlur = def.validateOnBlur != null ? def.validateOnBlur : _opts.validateOnBlur!
+      const validateOnBlur = def.validateOnBlur != null ? def.validateOnBlur : _opts.validateOnBlur
 
       if (validateOnBlur) {
         await validateField(name)
@@ -135,19 +128,25 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       forceUpdate()
     }
 
+    const getFieldInitialValue = (name: FieldName<T>) => _opts.initialValues?.[name] || INITIAL_FIELD_STATE.value
+
     const fields: Fields<T> = new Proxy(_fields, {
-      get(target, name: Extract<keyof T, string>) {
+      get(target, name: FieldName<T>) {
         if (!target[name]) {
+          if (!_defs[name]) {
+            _defs[name] = _opts.dynamic?.(name) || {}
+          }
+
           target[name] = {
+            ...INITIAL_FIELD_STATE,
             ref: createRef(),
             name,
             label: _opts.transformers?.label?.(name) || undefined,
+            value: getFieldInitialValue(name),
 
-            ...INITIAL_FIELD_STATE,
-
-            onChange: value => handleChange(name, value),
-            onFocus: () => handleFocus(name),
-            onBlur: () => handleBlur(name),
+            onChange: value => handleFieldChange(name, value),
+            onFocus: () => handleFieldFocus(name),
+            onBlur: () => handleFieldBlur(name),
 
             addForm: function (form) {
               if (!this.forms) {
@@ -168,27 +167,35 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
               }
             },
           }
-
-          if (!_defs[name]) {
-            _defs[name] = _opts.fieldConfig?.(name) || {}
-          }
         }
 
         return target[name]
       },
     })
 
-    if (_opts.initialValues) {
-      for (const [name, value] of Object.entries(_opts.initialValues)) {
-        const field = fields[name] as Mutable<Field>
-        field.value = value
+    const initFields = (obj: {} | undefined | null) => {
+      if (obj) {
+        for (const name of Object.keys(obj)) {
+          fields[name]
+        }
       }
     }
 
-    const hasErrorInternal = (type: 'error' | 'warn', fieldsList: FieldNames<T>) => {
-      fieldsList = asArray(fieldsList)
+    initFields(_opts.validationSchema)
+    initFields(_opts.initialValues)
 
-      for (const name of fieldsList) {
+    const handleSubmit = (onSubmit: (values: T) => void) => async (e: React.SyntheticEvent) => {
+      e.preventDefault()
+
+      if (await validate()) {
+        onSubmit(getValues())
+      }
+    }
+
+    const hasErrorInternal = (type: 'error' | 'warn', fieldNames: FieldNames<T>) => {
+      fieldNames = asArray(fieldNames)
+
+      for (const name of fieldNames) {
         const field = _fields[name]
 
         if (field.forms) {
@@ -210,26 +217,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
 
     const hasError = (fields: FieldNames<T> = fieldNames()) => hasErrorInternal('error', fields)
     const hasWarn = (fields: FieldNames<T> = fieldNames()) => hasErrorInternal('warn', fields)
-
-    const focusInvalidField = () => {
-      for (const name of fieldNames()) {
-        const field = _fields[name]
-
-        if (field.forms) {
-          for (const f of field.forms) {
-            if (f.hasError()) {
-              f.focusInvalidField()
-              return
-            }
-          }
-        } else {
-          if (field.error) {
-            field.ref.current?.focus()
-            return
-          }
-        }
-      }
-    }
 
     const validate = async (fields: FieldNames<T> = fieldNames(), silent = false) => {
       fields = asArray(fields)
@@ -293,30 +280,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       }
     }
 
-    const handleSubmit = (onSubmit: (values: T) => void) => async (e: React.SyntheticEvent) => {
-      e.preventDefault()
-
-      if (await validate()) {
-        onSubmit(getValues())
-      }
-    }
-
-    const reset = (fields: FieldNames<T> = fieldNames()) => {
-      for (const name of fields) {
-        const field = _fields[name as FieldName<T>]
-
-        _fields[name as FieldName<T>] = {
-          ...field,
-          ...INITIAL_FIELD_STATE,
-        }
-
-        // TODO too many children force updates
-        field.forms?.forEach(form => form.reset())
-      }
-
-      forceUpdate()
-    }
-
     function setErrorsInternal(key: 'error' | 'warn', errors: FieldErrors<T>) {
       for (const name of Object.keys(errors)) {
         const field = fields[name] as Mutable<Field>
@@ -334,6 +297,43 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       setErrorsInternal('warn', errors)
     }
 
+    const reset = (fields: FieldNames<T> = fieldNames()) => {
+      for (const name of asArray(fields)) {
+        const field = _fields[name]
+
+        _fields[name] = {
+          ...field,
+          ...INITIAL_FIELD_STATE,
+          value: getFieldInitialValue(name),
+        }
+
+        // TODO: Too many children force updates
+        field.forms?.forEach(form => form.reset())
+      }
+
+      forceUpdate()
+    }
+
+    const focusInvalidField = () => {
+      for (const name of fieldNames()) {
+        const field = _fields[name]
+
+        if (field.forms) {
+          for (const f of field.forms) {
+            if (f.hasError()) {
+              f.focusInvalidField()
+              return
+            }
+          }
+        } else {
+          if (field.error) {
+            field.ref.current?.focus()
+            return
+          }
+        }
+      }
+    }
+
     const form: Form<T> = {
       fields,
       validate,
@@ -344,8 +344,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       dirty,
       getValues,
       setValues,
-      //TODO
-      getErrors: {},
       setErrors,
       setWarns,
       reset,
