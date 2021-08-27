@@ -47,7 +47,7 @@
     "build": "run-s build:*",
     "build:lib": "tsc && vite build",
     "build:dts": "rollup -c",
-    "test": "jest",
+    "test": "jest --verbose",
     "prepublishOnly": "run-s build test",
     "prettify": "prettier --write \"./src/**/*.{ts,tsx}\""
   },
@@ -64,5 +64,10 @@
   "bugs": {
     "url": "https://github.com/mc-petry/useform/issues"
   },
-  "homepage": "https://mc-petry.github.io/useform-site/"
+  "homepage": "https://mc-petry.github.io/useform-site/",
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.12.15"
+    }
+  }
 }

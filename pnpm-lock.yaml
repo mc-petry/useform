@@ -1,5 +1,8 @@
 lockfileVersion: 5.3
 
+overrides:
+  esbuild: 0.12.15
+
 specifiers:
   '@emotion/react': ^11.4.1
   '@rollup/plugin-typescript': ^8.2.5
@@ -10,7 +13,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^4.29.3
   '@typescript-eslint/parser': ^4.29.3
   '@vitejs/plugin-react-refresh': ^1.3.6
-  esbuild: ^0.12.23
+  esbuild: 0.12.15
   eslint: ^7.32.0
   framer-motion: ^4.1.17
   history: ^5.0.1
@@ -46,7 +49,7 @@ devDependencies:
   '@typescript-eslint/eslint-plugin': 4.29.3_23d37b03f8c223bbc3e8bef1b4670d69
   '@typescript-eslint/parser': 4.29.3_f8ed5431742f75332c3083279db44140
   '@vitejs/plugin-react-refresh': 1.3.6
-  esbuild: 0.12.23
+  esbuild: 0.12.15
   eslint: 7.32.0
   jest: 27.0.6
   npm-run-all: 4.1.5
@@ -55,7 +58,7 @@ devDependencies:
   rimraf: 3.0.2
   rollup: 2.56.3
   rollup-plugin-dts: 3.0.2_532226d00b7abb7e406b53383b1ead8b
-  rollup-plugin-esbuild: 4.5.0_esbuild@0.12.23+rollup@2.56.3
+  rollup-plugin-esbuild: 4.5.0_esbuild@0.12.15+rollup@2.56.3
   ts-jest: 27.0.5_d783205d652bcb54bcd705f572b6bac6
   typescript: 4.4.1-rc
   vite: 2.5.1
@@ -1637,8 +1640,8 @@ packages:
       is-symbol: 1.0.4
     dev: true
 
-  /esbuild/0.12.23:
-    resolution: {integrity: sha512-qvS4aKnmKikoWGscd5lVAzgobMovlH/JhaWitRiQ8xJx0x1Fym0pqVjMFs43Nvff8WpibeWm+fWoLK88T1U0Xw==}
+  /esbuild/0.12.15:
+    resolution: {integrity: sha512-72V4JNd2+48eOVCXx49xoSWHgC3/cCy96e7mbXKY+WOWghN00cCmlGnwVLRhRHorvv0dgCyuMYBZlM2xDM5OQw==}
     hasBin: true
     requiresBuild: true
     dev: true
@@ -3532,7 +3535,7 @@ packages:
       '@babel/code-frame': 7.14.5
     dev: true
 
-  /rollup-plugin-esbuild/4.5.0_esbuild@0.12.23+rollup@2.56.3:
+  /rollup-plugin-esbuild/4.5.0_esbuild@0.12.15+rollup@2.56.3:
     resolution: {integrity: sha512-ieUd3AoYWsN6Tfp0LBNnC+QpdhKjDEaH4NK3ghuEXOH56/7TAtD+hMbD9vSWZgsGSbaqCkrn4j6PaUj1vOSt1g==}
     engines: {node: '>=12'}
     peerDependencies:
@@ -3540,7 +3543,7 @@ packages:
       rollup: ^1.20.0 || ^2.0.0
     dependencies:
       '@rollup/pluginutils': 4.1.1
-      esbuild: 0.12.23
+      esbuild: 0.12.15
       joycon: 3.0.1
       jsonc-parser: 3.0.0
       rollup: 2.56.3
@@ -4036,7 +4039,7 @@ packages:
     engines: {node: '>=12.2.0'}
     hasBin: true
     dependencies:
-      esbuild: 0.12.23
+      esbuild: 0.12.15
       postcss: 8.3.6
       resolve: 1.20.0
       rollup: 2.56.3

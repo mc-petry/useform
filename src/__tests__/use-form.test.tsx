@@ -33,22 +33,16 @@ describe('Creation', () => {
     expect(age.value).toEqual(18)
   })
 
-  describe('Transformers', () => {
-    test('Label', () => {
-      const { result } = renderHook(() =>
-        useForm<UserDTO>({
-          transformers: {
-            label: name => name[0].toUpperCase() + name.substr(1),
-          },
-        })
-      )
-      const { age } = result.current.fields
-      expect(age.label).toBe('Age')
-    })
-
-    test('Error', () => {
-      expect(1).toBe(1)
-    })
+  test('Label transformer', () => {
+    const { result } = renderHook(() =>
+      useForm<UserDTO>({
+        transformers: {
+          label: name => name[0].toUpperCase() + name.substr(1),
+        },
+      })
+    )
+    const { age } = result.current.fields
+    expect(age.label).toBe('Age')
   })
 })
 
@@ -57,26 +51,32 @@ describe('Events', () => {
     useForm<UserDTO>({
       validationSchema: {
         age: v => !v && 'required',
+        name: v => v !== 'John' && 'not a John',
       },
     })
   )
   const { name, age } = result.current.fields
 
+  test('onFocus', async () => {
+    act(() => name.onFocus())
+    expect(name.touched).toBe(true)
+    expect(name.dirty).toBe(false)
+  })
+
   test('onChange', async () => {
-    await act(async () => name.onChange('Adelina'))
+    act(() => name.onChange('Adelina'))
     expect(name.dirty).toBe(true)
     expect(name.value).toBe('Adelina')
   })
 
-  test('onFocus', async () => {
-    await act(async () => name.onFocus())
-    expect(name.touched).toBe(true)
-  })
-
   test('onBlur', async () => {
-    await act(async () => name.onBlur())
+    age.onBlur()
+    name.onBlur()
+
     await delay()
-    expect(age.error).not.toBeNull()
+
+    expect(age.error).toBeNull()
+    expect(name.error).toBe('not a John')
   })
 })
 
