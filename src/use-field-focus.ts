@@ -16,8 +16,8 @@ export function useFieldFocus(field: Field) {
       setFocused(true)
     }
 
-    field.onBlur = () => {
-      originBlur()
+    field.onBlur = async () => {
+      await originBlur()
       setFocused(false)
     }
 

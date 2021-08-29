@@ -36,7 +36,7 @@ export interface FieldDefinition<TValue, TFields, TValidationResult> {
   warn?: ValidationRules<TValue, TFields, TValidationResult>
 
   /**
-   * Defines the dependent fields that must be validated after current field.
+   * Defines the dependent fields that must be validated after current field. Skips untouched fields.
    */
   dependent?: FieldNames<TFields>
 

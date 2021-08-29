@@ -41,8 +41,8 @@ export function TextField({ field, label }: TextFieldProps) {
         ref={field.ref as React.RefObject<HTMLInputElement>}
         value={field.value || ''}
         onChange={e => field.onChange(e.target.value)}
-        onFocus={field.onFocus}
-        onBlur={field.onBlur}
+        onFocus={() => field.onFocus()}
+        onBlur={() => field.onBlur()}
         type="text"
       />
       <FieldMessage field={field} />

@@ -92,8 +92,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       field.dirty = true
 
       const def = _defs[name]
-
-      // Validate
       const validateOnChange = def.validateOnChange != null ? def.validateOnChange : _opts.validateOnChange
 
       if (validateOnChange) {
@@ -118,7 +116,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       }
 
       const def = _defs[name]
-
       const validateOnBlur = def.validateOnBlur != null ? def.validateOnBlur : _opts.validateOnBlur
 
       if (validateOnBlur) {
@@ -128,7 +125,11 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       forceUpdate()
     }
 
-    const getFieldInitialValue = (name: FieldName<T>) => _opts.initialValues?.[name] || INITIAL_FIELD_STATE.value
+    const getFieldInitialValue = (name: FieldName<T>) => {
+      let value = _opts.initialValues?.[name] || INITIAL_FIELD_STATE.value
+      // TODO: detect from child forms
+      return value
+    }
 
     const fields: Fields<T> = new Proxy(_fields, {
       get(target, name: FieldName<T>) {
@@ -167,6 +168,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
               }
             },
           }
+
+          console.log('QQQ', target[name].value)
         }
 
         return target[name]
@@ -299,19 +302,25 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
 
     const reset = (fields: FieldNames<T> = fieldNames()) => {
       for (const name of asArray(fields)) {
-        const field = _fields[name]
+        const field = _fields[name] as Mutable<Field>
+        delete _fields[name]
 
-        _fields[name] = {
-          ...field,
-          ...INITIAL_FIELD_STATE,
-          value: getFieldInitialValue(name),
-        }
+        // for (const key of Object.keys(INITIAL_FIELD_STATE) as (keyof typeof INITIAL_FIELD_STATE)[]) {
+        //   // field[key] = INITIAL_FIELD_STATE[key]
+        // }
 
-        // TODO: Too many children force updates
-        field.forms?.forEach(form => form.reset())
+        // _fields[name] = {
+        //   ...field,
+        //   ...INITIAL_FIELD_STATE,
+        //   value: getFieldInitialValue(name),
+        // }
+
+        // field.forms?.forEach(form => form.reset())
       }
 
+      // if (!silent) {
       forceUpdate()
+      // }
     }
 
     const focusInvalidField = () => {

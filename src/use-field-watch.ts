@@ -10,8 +10,8 @@ export function useFieldWatch<T>(field: Field<T>) {
   useEffect(() => {
     const origin = field.onChange
 
-    field.onChange = (value: T) => {
-      origin(value)
+    field.onChange = async (value: T) => {
+      await origin(value)
       forceUpdate()
     }
 

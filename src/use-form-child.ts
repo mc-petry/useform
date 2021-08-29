@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Field, Fields, Form, FormOptions, useForm } from '.'
 
 export function useFormChild<T extends Record<string, any>>(
@@ -6,21 +6,38 @@ export function useFormChild<T extends Record<string, any>>(
   rootField: Field<T[]>,
   options: Pick<FormOptions<T, any>, 'fields' | 'validationSchema'>
 ) {
-  const childForm = useForm(options)
+  const childForm = useForm(options, [rootField])
 
-  useEffect(() => {
-    rootField.addForm(childForm as Form<any>)
+  // useEffect(() => {
+  //   childForm.reset = () => {
+  //     reset:
+  //   }
+  // }, [])
 
-    if (rootField.value !== undefined && rootField.value[index] !== undefined) {
+  // useEffect(() => {
+  //   console.log('[ useFormChild ] Attach form')
+  //   rootField.addForm(childForm as Form)
+
+  //   debugger
+  //   if (rootField.value !== undefined && rootField.value[index] !== undefined) {
+  //     childForm.setValues(rootField.value[index])
+  //   }
+
+  //   return () => {
+  //     console.log('[ useFormChild ] Remove form')
+  //     rootField.removeForm(childForm as Form)
+  //   }
+  // }, [rootField])
+
+  const proxy = useMemo(() => {
+    console.log(`[ useChildForm ] create proxy`)
+    rootField.addForm(childForm as Form)
+    console.log(rootField.value?.[index])
+
+    if (rootField.value?.[index] !== undefined) {
       childForm.setValues(rootField.value[index])
     }
 
-    return () => {
-      rootField.removeForm(childForm as Form<any>)
-    }
-  }, [rootField])
-
-  const proxy = useMemo(() => {
     return new Proxy({} as Fields<T>, {
       get(target, name: Extract<keyof T, string> & 'index') {
         if (!target[name]) {
@@ -28,8 +45,8 @@ export function useFormChild<T extends Record<string, any>>(
           target[name] = field
 
           const originOnChange = field.onChange
-          field.onChange = (value: any) => {
-            originOnChange(value)
+          field.onChange = async (value: any) => {
+            await originOnChange(value)
             const arr = rootField.value!
 
             arr[index] = {
@@ -37,7 +54,7 @@ export function useFormChild<T extends Record<string, any>>(
               [name]: value,
             }
 
-            rootField.onChange(arr)
+            await rootField.onChange(arr)
           }
 
           const originOnFocus = field.onFocus
@@ -47,16 +64,16 @@ export function useFormChild<T extends Record<string, any>>(
           }
 
           const originOnBlur = field.onBlur
-          field.onBlur = () => {
-            originOnBlur()
-            rootField.onBlur()
+          field.onBlur = async () => {
+            await originOnBlur()
+            await rootField.onBlur()
           }
         }
 
         return target[name]
       },
     })
-  }, [])
+  }, [rootField])
 
   return { fields: proxy }
 }
