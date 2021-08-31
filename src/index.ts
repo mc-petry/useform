@@ -1,6 +1,7 @@
 import { formFactory } from './form-factory'
 import { Field } from './models/field'
-import { FieldDefinition, FieldDefinitions } from './models/field-definition'
+import { FieldDefinition } from './models/field-definition'
+import { FieldDefinitions } from './models/field-definitions'
 import { Fields } from './models/fields'
 import { Form } from './models/form'
 import { FormOptions } from './models/form-options'

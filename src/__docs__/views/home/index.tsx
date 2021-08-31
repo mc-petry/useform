@@ -4,9 +4,14 @@ import { useFormChild } from '../../../use-form-child'
 import { Button } from '../../ui/button'
 import { TextField } from '../../ui/forms/text-field'
 
+interface DeepObject {
+  phone: string
+}
+
 interface Address {
   city: string
   lane: string
+  phone: DeepObject[]
 }
 
 export function VHome() {
@@ -30,6 +35,14 @@ export function VHome() {
         {
           city: 'Kharkiv',
           lane: '',
+          phone: [
+            {
+              phone: '',
+            },
+            {
+              phone: '+380664449992',
+            },
+          ],
         },
       ],
     },
@@ -74,7 +87,6 @@ const styles = {
 }
 
 function SubForm({ index, field }: { index: number; field: Field<Address[]> }) {
-  console.log(field.value![0])
   const { fields } = useFormChild(index, field, {
     fields: {
       city: {
@@ -87,13 +99,30 @@ function SubForm({ index, field }: { index: number; field: Field<Address[]> }) {
     },
   })
 
-  console.log('[ subform ] render')
-
   return (
     <div>
       Nested [ {index} ]:
       <TextField label={'City'} field={fields.city} />
       <TextField label={'Lane'} field={fields.lane} />
+      Phones:
+      {fields.phone.value!.map((x, i) => (
+        <DeepSubform key={i} index={i} field={fields.phone} />
+      ))}
+    </div>
+  )
+}
+
+function DeepSubform({ index, field }: { index: number; field: Field<DeepObject[]> }) {
+  const { fields } = useFormChild(index, field, {
+    validationSchema: {
+      phone: v => v !== '000' && 'Not 000',
+    },
+  })
+
+  return (
+    <div>
+      Deep nested [ {index} ]:
+      <TextField label={'City'} field={fields.phone} />
     </div>
   )
 }

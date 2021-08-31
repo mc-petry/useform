@@ -21,7 +21,7 @@ export interface FieldDefinition<TValue, TFields, TValidationResult> {
    * Each rule must return success as `false | undefined` or error of other types.
    *
    * @example value => !value && 'Required'
-   * @example value => (!value && 'Required') || (value.length < 5 && 'Min length is 5')
+   * @example value => (!value && 'Required') || (value.length < 10 && 'Min length is 10')
    * @example [
    *  value => !value && 'Required',
    *  value => value!.length < 5 && 'Min length is 5'
@@ -49,8 +49,4 @@ export interface FieldDefinition<TValue, TFields, TValidationResult> {
    * Overrides default form behaviour for current field.
    */
   validateOnBlur?: boolean
-}
-
-export type FieldDefinitions<T, TValidationResult> = {
-  [P in keyof T]-?: FieldDefinition<T[P], T, TValidationResult>
 }

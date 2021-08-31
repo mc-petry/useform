@@ -7,32 +7,8 @@ export function useFormChild<T extends Record<string, any>>(
   options: Pick<FormOptions<T, any>, 'fields' | 'validationSchema'>
 ) {
   const childForm = useForm(options, [rootField])
-
-  // useEffect(() => {
-  //   childForm.reset = () => {
-  //     reset:
-  //   }
-  // }, [])
-
-  // useEffect(() => {
-  //   console.log('[ useFormChild ] Attach form')
-  //   rootField.addForm(childForm as Form)
-
-  //   debugger
-  //   if (rootField.value !== undefined && rootField.value[index] !== undefined) {
-  //     childForm.setValues(rootField.value[index])
-  //   }
-
-  //   return () => {
-  //     console.log('[ useFormChild ] Remove form')
-  //     rootField.removeForm(childForm as Form)
-  //   }
-  // }, [rootField])
-
   const proxy = useMemo(() => {
-    console.log(`[ useChildForm ] create proxy`)
     rootField.addForm(childForm as Form)
-    console.log(rootField.value?.[index])
 
     if (rootField.value?.[index] !== undefined) {
       childForm.setValues(rootField.value[index])
@@ -49,12 +25,16 @@ export function useFormChild<T extends Record<string, any>>(
             await originOnChange(value)
             const arr = rootField.value!
 
-            arr[index] = {
-              ...arr[index],
+            /**
+             * Cloning an existing array prevents the source from being changed from {@link Form.initialValues}
+             */
+            const newValue = [...arr]
+            newValue[index] = {
+              ...newValue[index],
               [name]: value,
             }
 
-            await rootField.onChange(arr)
+            await rootField.onChange(newValue)
           }
 
           const originOnFocus = field.onFocus

@@ -168,8 +168,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
               }
             },
           }
-
-          console.log('QQQ', target[name].value)
         }
 
         return target[name]

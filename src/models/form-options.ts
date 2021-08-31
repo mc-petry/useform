@@ -1,4 +1,5 @@
-import { FieldDefinition, FieldDefinitions, ValidationSchema } from './field-definition'
+import { FieldDefinition, ValidationSchema } from './field-definition'
+import { FieldDefinitions } from './field-definitions'
 import { FormTransformers } from './form-transformers'
 
 // TODO:
