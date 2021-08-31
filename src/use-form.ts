@@ -111,7 +111,9 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const handleFieldBlur = async (name: keyof T) => {
-      if (!_fields[name].dirty) {
+      const field = _fields[name]
+
+      if (!field.dirty || field.forms) {
         return
       }
 
@@ -126,9 +128,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const getFieldInitialValue = (name: FieldName<T>) => {
-      let value = _opts.initialValues?.[name] || INITIAL_FIELD_STATE.value
-      // TODO: detect from child forms
-      return value
+      return _opts.initialValues?.[name] || INITIAL_FIELD_STATE.value
     }
 
     const fields: Fields<T> = new Proxy(_fields, {
@@ -322,6 +322,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const focusInvalidField = () => {
+      debugger
       for (const name of fieldNames()) {
         const field = _fields[name]
 
