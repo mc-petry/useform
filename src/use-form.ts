@@ -322,7 +322,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const focusInvalidField = () => {
-      debugger
       for (const name of fieldNames()) {
         const field = _fields[name]
 

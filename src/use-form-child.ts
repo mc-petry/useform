@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Field, Fields, Form, FormOptions, useForm } from '.'
 
 export function useFormChild<T extends Record<string, any>>(
@@ -7,9 +7,16 @@ export function useFormChild<T extends Record<string, any>>(
   options: Pick<FormOptions<T, any>, 'fields' | 'validationSchema'>
 ) {
   const childForm = useForm(options, [rootField])
-  const proxy = useMemo(() => {
-    rootField.addForm(childForm as Form)
 
+  useEffect(() => {
+    rootField.addForm(childForm as Form)
+    return () => rootField.removeForm(childForm as Form)
+  }, [childForm])
+
+  const proxy = useMemo(() => {
+    /**
+     * Sets default values from {@link Form.initialValues}.
+     */
     if (rootField.value?.[index] !== undefined) {
       childForm.setValues(rootField.value[index])
     }
@@ -26,7 +33,7 @@ export function useFormChild<T extends Record<string, any>>(
             const arr = rootField.value!
 
             /**
-             * Cloning an existing array prevents the source from being changed from {@link Form.initialValues}
+             * Cloning an existing array prevents the source from being changed from {@link Form.initialValues}.
              */
             const newValue = [...arr]
             newValue[index] = {
