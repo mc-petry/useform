@@ -4,13 +4,13 @@ import { Field } from '.'
 /**
  * Force update component when field value changed.
  */
-export function useFieldWatch<T>(field: Field<T>) {
+export function useFieldWatch(field: Field) {
   const [, forceUpdate] = useReducer(x => x + 1, 0)
 
   useEffect(() => {
     const origin = field.onChange
 
-    field.onChange = async (value: T) => {
+    field.onChange = async value => {
       await origin(value)
       forceUpdate()
     }

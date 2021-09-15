@@ -1,10 +1,9 @@
 import { css } from '@emotion/react'
-import { Field, useFieldWatch } from '../../../..'
-import { useFieldFocus } from '../../../../use-field-focus'
-import { FieldMessage } from '../field-message'
+import { Field, useFieldFocus, useFieldWatch } from '@mc-petry/useform'
+import { FieldMessage } from '~/ui/forms/field-message'
 
 export interface TextFieldProps {
-  field: Field<string>
+  field: Field<string> | Field<string | undefined>
   label: string
   disabled?: boolean
   type?: 'text' | 'password'

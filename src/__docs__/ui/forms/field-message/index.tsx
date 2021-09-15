@@ -1,4 +1,4 @@
-import { Field } from '@mc-petry/useform'
+import { Field } from '../../../..'
 import styles from './styles'
 
 interface Props {
@@ -10,12 +10,9 @@ export function FieldMessage({ field }: Props) {
     return null
   }
 
-  return <div
-    css={[
-      styles.message,
-      field.error && styles.error || field.warn && styles.warn
-    ]}
-  >
-    {field.error || field.warn}
-  </div>
+  return (
+    <div css={[styles.message, (field.error && styles.error) || (field.warn && styles.warn)]}>
+      {field.error || field.warn}
+    </div>
+  )
 }

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "~/*": ["__docs__/*"],
+      "@mc-petry/useform": ["."]
+    }
+  }
+}

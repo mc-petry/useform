@@ -1,13 +1,11 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "files.exclude": {
-    "site": true
-  },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": true,
     "source.organizeImports": true
   },
   "typescript.preferences.quoteStyle": "single",
-  "typescript.format.semicolons": "remove"
+  "typescript.format.semicolons": "remove",
+  "javascript.preferences.importModuleSpecifier": "non-relative"
 }

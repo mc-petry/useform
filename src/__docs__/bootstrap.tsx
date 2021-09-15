@@ -1,12 +1,13 @@
 import { css, Global } from '@emotion/react'
+import { StrictMode } from 'react'
 import { Views } from './views'
 
 export function Bootstrap() {
   return (
-    <div>
+    <StrictMode>
       <Global styles={styles.global} />
       <Views />
-    </div>
+    </StrictMode>
   )
 }
 

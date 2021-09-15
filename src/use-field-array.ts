@@ -1,10 +1,18 @@
 import { useEffect, useMemo } from 'react'
 import { Field, Fields, Form, FormOptions, useForm } from '.'
+import { ValidationResultDefault } from './models/field-definition'
 
-export function useFormChild<T extends Record<string, any>>(
+/**
+ * Creates subform for array field.
+ *
+ * @param index Current index of root field value.
+ * @param rootField Array field from parent form.
+ * @returns
+ */
+export function useFieldArray<T extends Record<string, any>, TValidationResult = ValidationResultDefault>(
   index: number,
   rootField: Field<T[]>,
-  options: Pick<FormOptions<T, any>, 'fields' | 'validationSchema'>
+  options: Pick<FormOptions<T, TValidationResult>, 'fields' | 'validationSchema'>
 ) {
   const childForm = useForm(options, [rootField])
 

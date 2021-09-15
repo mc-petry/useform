@@ -1,29 +1,47 @@
-import { css } from '@emotion/react'
 import reactRefresh from '@vitejs/plugin-react-refresh'
-import { defineConfig } from 'vite'
+import { BuildOptions, defineConfig } from 'vite'
 
-export default defineConfig(() => ({
-  plugins: [reactRefresh()],
-  esbuild: {
-    jsxFactory: `jsx`,
-    jsxInject: `
-      import React from 'react'
-      import { jsx } from '@emotion/react'
-    `,
-  },
-  build: {
-    lib: {
-      entry: './src/index.ts',
-      formats: ['cjs', 'es'],
-    },
-    rollupOptions: {
-      external: ['react', '@emotion/react'],
-    },
-  },
-}))
+export default defineConfig(({ mode }) => {
+  let build: BuildOptions
 
-const styles = {
-  global: css`
-    @import url('https://fonts.googleapis.com/css2?family=Overpass:wght@400;700&display=swap');
-  `,
-}
+  switch (mode) {
+    case 'production':
+      build = {
+        lib: {
+          entry: './src/index.ts',
+          formats: ['cjs', 'es'],
+        },
+        rollupOptions: {
+          external: ['react', '@emotion/react'],
+        },
+      }
+      break
+
+    case 'server':
+      build = {
+        outDir: './dist/server',
+      }
+      break
+
+    case 'site':
+      build = {
+        outDir: './docs',
+      }
+      break
+  }
+
+  return {
+    plugins: [reactRefresh()],
+    esbuild: {
+      jsxFactory: `jsx`,
+      jsxInject: mode !== 'production' && `import React from 'react';import { jsx } from '@emotion/react';`,
+    },
+    build,
+    resolve: {
+      alias: {
+        '~/': './src/__docs__', //path.resolve(__dirname, 'src/')
+        '@mc-petry/useform': './src', //path.resolve(__dirname, 'src/')
+      },
+    },
+  }
+})
