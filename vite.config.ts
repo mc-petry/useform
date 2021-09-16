@@ -1,4 +1,5 @@
 import reactRefresh from '@vitejs/plugin-react-refresh'
+import path from 'path'
 import { BuildOptions, defineConfig } from 'vite'
 
 export default defineConfig(({ mode }) => {
@@ -39,8 +40,13 @@ export default defineConfig(({ mode }) => {
     build,
     resolve: {
       alias: {
-        '~/': './src/__docs__', //path.resolve(__dirname, 'src/')
-        '@mc-petry/useform': './src', //path.resolve(__dirname, 'src/')
+        '~': path.resolve(__dirname, './src/__docs__'),
+        '@mc-petry/useform': path.resolve(__dirname, './src'),
+      },
+    },
+    server: {
+      fs: {
+        allow: ['.'],
       },
     },
   }

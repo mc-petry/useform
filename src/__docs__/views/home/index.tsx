@@ -1,4 +1,5 @@
 import { css } from '@emotion/react'
+import { motion } from 'framer-motion'
 import { CLogo } from '../../ui/logo'
 import { VHomeCBenefits } from './@benefits'
 
@@ -13,14 +14,37 @@ interface Address {
 }
 
 export function VHome() {
+  const part1 = '@mc-petry/'
+  const part2 = 'useform'
+  const stagger = 0.07
+
   return (
     <div>
       <CLogo css={styles.logo} />
       <div css={styles.intro}>
-        <div css={styles.home__prefix}>@mc-petry/</div>
+        <div css={styles.home__prefix}>
+          {part1.split('').map((x, i) => (
+            <motion.div
+              style={{ display: 'inline-block' }}
+              initial={{ opacity: 0, scale: 1.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * stagger }}
+            >
+              {x}
+            </motion.div>
+          ))}
+        </div>
         <div css={styles.home__use}>
-          <div css={styles.home__colored}>u</div>
-          se<div css={styles.home__colored}>f</div>orm
+          {part2.split('').map((x, i) => (
+            <motion.div
+              style={{ display: 'inline-block' }}
+              initial={{ opacity: 0, scale: 1.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: (i + part1.length) * stagger }}
+            >
+              {x}
+            </motion.div>
+          ))}
         </div>
       </div>
       <VHomeCBenefits />
@@ -36,9 +60,7 @@ const styles = {
   `,
 
   intro: css`
-    max-width: 600px;
-    /* padding: 100px 0; */
-    margin: 0 auto;
+    margin: 0 auto 60px;
     color: #ddd;
     font-size: 32px;
     text-align: center;
@@ -54,11 +76,6 @@ const styles = {
   home__prefix: css`
     display: inline;
     color: #594e6a;
-  `,
-
-  home__colored: css`
-    display: inline;
-    /* color: #a19aff; */
   `,
 
   content: css`
