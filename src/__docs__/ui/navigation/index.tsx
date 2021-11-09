@@ -10,7 +10,17 @@ export function CNavigation({ items }: Props) {
     <div css={styles.sidebar}>
       <div css={styles.sidebar__content}>
         {items.map((x, i) => (
-          <div key={i} css={[styles.sidebar__item, x.children && styles.sidebar__item_children]}>
+          <div
+            key={i}
+            css={[styles.sidebar__item, x.children && styles.sidebar__item_children]}
+            onClick={() => {
+              console.log(document.getElementById(`example-${i}`))
+              document.getElementById(`example-${i}`)!.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              })
+            }}
+          >
             {x.header}
           </div>
         ))}
@@ -31,14 +41,18 @@ const styles = {
     border-radius: 32px;
 
     ${mq.phone} {
-      position: static;
-      margin-bottom: 20px;
+      margin: 0 0 20px;
+      display: block;
     }
   `,
 
   sidebar__content: css`
     position: sticky;
     top: 24px;
+
+    ${mq.phone} {
+      position: static;
+    }
   `,
 
   sidebar__item: css`
@@ -75,7 +89,6 @@ const styles = {
       font-size: 18px;
       padding-top: 12px;
       padding-bottom: 12px;
-      display: inline;
       background: none !important;
 
       &::after {

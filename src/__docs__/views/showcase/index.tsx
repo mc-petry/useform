@@ -58,7 +58,7 @@ export function VShowcase() {
         <TH2>Contact information</TH2>
 
         {fields.contact.value!.map((x, i) => (
-          <ContactForm field={fields.contact} index={i} />
+          <ContactForm key={i} field={fields.contact} index={i} />
         ))}
 
         <CForm.Actions>
@@ -125,6 +125,8 @@ function ContactForm({ field, index }: ContactFormProps) {
 
 const styles = {
   showcase: css`
+    padding-top: 48px;
+    padding-bottom: 48px;
     color: #ccc;
   `,
 }

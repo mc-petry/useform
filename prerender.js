@@ -4,7 +4,7 @@ const fs = require('fs')
 
 async function prerender() {
   const template = fs.readFileSync('./docs/index.html', 'utf-8')
-  const routesToPrerender = ['/']
+  const routesToPrerender = ['/', '/guide', '/examples', '/showcase']
   const { render } = require('./dist/server/entry-server.js')
 
   for (const url of routesToPrerender) {

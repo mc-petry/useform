@@ -69,6 +69,6 @@ export function TextField({ field }: Props) {
 
 const styles = {
   guide: css`
-    padding: 20px 0;
+    padding: 20px 16px;
   `,
 }

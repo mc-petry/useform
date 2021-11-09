@@ -2,6 +2,7 @@ import { css } from '@emotion/react'
 import { Form } from '@mc-petry/useform'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
+import { mq } from '~/theme'
 import { CFormState } from './state'
 
 interface Props<T> {
@@ -39,6 +40,10 @@ const styles = {
     display: flex;
     border-radius: 32px;
     background: rgba(0, 0, 0, 0.1);
+
+    ${mq.phone} {
+      display: block;
+    }
   `,
 
   form__form: css`

@@ -11,6 +11,6 @@
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
 Imagine that validating and submitting form can be so simple.
-<br>Explore the [docs](https://mc-petry.github.io/useform-site/).
+<br>Explore the [docs](https://mc-petry.github.io/useform/).
 
 </div>

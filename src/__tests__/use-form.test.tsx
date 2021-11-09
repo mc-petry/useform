@@ -297,9 +297,10 @@ describe('Actions', () => {
         validationSchema: {
           name: v => !v && 'required',
         },
-        submit: () => (submitted = true),
       })
     )
+
+    form.handleSubmit(() => (submitted = true))
 
     await act(async () => {
       form.handleSubmit({ preventDefault: () => undefined } as any)

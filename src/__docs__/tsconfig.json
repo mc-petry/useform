@@ -6,5 +6,7 @@
       "@mc-petry/useform": [".."],
       "~/*": ["*"]
     }
-  }
+  },
+  "exclude": [],
+  "include": [".."]
 }

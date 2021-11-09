@@ -116,7 +116,7 @@ const styles = {
     flex: 0 0 33%;
     margin-bottom: 40px;
 
-    &:not(:nth-child(3n)) {
+    &:not(:nth-of-type(3n)) {
       padding-right: 40px;
     }
   `,

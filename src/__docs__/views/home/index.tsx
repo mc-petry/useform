@@ -15,6 +15,7 @@ export function VHome() {
         <div css={styles.home__prefix}>
           {part1.split('').map((x, i) => (
             <motion.div
+              key={i}
               style={{ display: 'inline-block' }}
               initial={{ opacity: 0, scale: 1.5 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -27,6 +28,7 @@ export function VHome() {
         <div css={styles.home__use}>
           {part2.split('').map((x, i) => (
             <motion.div
+              key={i}
               style={{ display: 'inline-block' }}
               initial={{ opacity: 0, scale: 1.5 }}
               animate={{ opacity: 1, scale: 1 }}

@@ -1,4 +1,5 @@
 import { css } from '@emotion/react'
+import { mq } from '~/theme'
 import { Container } from '~/ui/container'
 import { CNavigation } from '~/ui/navigation'
 import { TH2 } from '~/ui/typography/h2'
@@ -44,7 +45,7 @@ export function VExamples() {
       <CNavigation items={examples} />
       <div css={styles.examples__content}>
         {examples.map((x, i) => (
-          <div key={i} css={styles.examples__example}>
+          <div key={i} id={`example-${i}`} css={styles.examples__example}>
             <div css={styles.examples__exampleTitle}>
               <TH2>{x.header}</TH2>
             </div>
@@ -60,7 +61,11 @@ export function VExamples() {
 const styles = {
   examples: css`
     display: flex;
-    padding: 48px 0;
+    padding: 48px 16px;
+
+    ${mq.phone} {
+      display: block;
+    }
   `,
 
   examples__content: css`

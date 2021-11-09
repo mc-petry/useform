@@ -1,5 +1,6 @@
 import { css } from '@emotion/react'
 import { Form } from '@mc-petry/useform'
+import { mq } from '~/theme'
 
 interface Props<T> {
   form: Form<T>
@@ -53,6 +54,11 @@ const styles = {
     flex: 0.6;
     overflow: hidden;
     padding: 24px 32px;
+
+    ${mq.phone} {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
   `,
 
   state__content: css`
