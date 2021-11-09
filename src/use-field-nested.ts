@@ -1,7 +1,21 @@
 import { useEffect, useMemo } from 'react'
 import { Field, Fields, Form, FormOptions, useForm } from '.'
 
-export function useFormNested<T extends Record<string, any>>(
+/**
+ * Allows you to use nested properties as fields.
+ *
+ * Useful for forms like this where you need to edit `firstName` and `lastName`:
+ * ```ts
+ * interface FormData {
+ *   community: string
+ *   user: {
+ *     firstName: string
+ *     lastName: string
+ *   }
+ * }
+ * ```
+ */
+export function useFieldNested<T extends Record<string, any>>(
   rootField: Field<T>,
   options?: Pick<FormOptions<T, any>, 'fields' | 'validationSchema'>
 ) {

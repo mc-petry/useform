@@ -5,14 +5,16 @@ import { ValidationResultDefault } from './models/field-definition'
 /**
  * Creates subform for array field.
  *
- * @param index Current index of root field value.
+ * You may want to use helper methods {@link fieldArrayRemoveItem} and
+ * {@link fieldArrayAddItem} for adding and removing items or implement your own.
+ *
  * @param rootField Array field from parent form.
- * @returns
+ * @param index Current index of root field value.
  */
 export function useFieldArray<T extends Record<string, any>, TValidationResult = ValidationResultDefault>(
-  index: number,
   rootField: Field<T[]>,
-  options: Pick<FormOptions<T, TValidationResult>, 'fields' | 'validationSchema'>
+  index: number,
+  options?: Pick<FormOptions<T, TValidationResult>, 'fields' | 'validationSchema'>
 ) {
   const childForm = useForm(options, [rootField])
 
@@ -71,4 +73,15 @@ export function useFieldArray<T extends Record<string, any>, TValidationResult =
   }, [rootField])
 
   return { fields: proxy }
+}
+
+export function fieldArrayRemoveItem<T>(field: Field<T[]>, index: number) {
+  field.onChange(field.value!.filter((_, i) => i !== index))
+}
+
+export function fieldArrayAddItem<T>(field: Field<T[]>, item: T, index = field.value!.length) {
+  const arr = field.value!
+  arr.splice(index, 0, item)
+  field.onChange(arr)
+  field.onBlur()
 }

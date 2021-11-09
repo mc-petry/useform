@@ -3,8 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "~/*": ["*"],
-      "@mc-petry/useform": [".."]
+      "@mc-petry/useform": [".."],
+      "~/*": ["*"]
     }
   }
 }

@@ -1,4 +1,14 @@
+docs
 node_modules
+src/__docs__
+src/__tests__
+.eslintrc.json
+.gitignore
+.prettierrc.json
 .travis.yml
+index.html
+jest.config.js
+prerender.js
+rollup.config.ts
 tsconfig.json
-tslint.json
+vite.config.ts

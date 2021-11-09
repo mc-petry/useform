@@ -10,11 +10,6 @@ export interface FormOptions<T, TValidationResult> {
   fields?: Partial<FieldDefinitions<T, TValidationResult>>
 
   /**
-   * Submission handler. Will not be called if there are errors
-   */
-  submit?: (values: T) => void
-
-  /**
    * Form transformers
    */
   transformers?: FormTransformers<T, TValidationResult>

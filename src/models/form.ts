@@ -16,8 +16,8 @@ export interface Form<T extends Record<string, any> = any> {
 
   /**
    * Handles form submit.
-   * @example
    *
+   * @example
    * <form onSubmit={handleSubmit((values) => {
    *   ...
    * })}>

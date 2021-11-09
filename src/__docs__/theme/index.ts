@@ -1,5 +1,9 @@
 import { css } from '@emotion/react'
 
+export const mq = {
+  phone: '@media (max-width:767px)',
+}
+
 export const defaultTheme = {
   container: css`
     width: 920px;

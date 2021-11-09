@@ -29,6 +29,7 @@ async function callValidate<T>(validation: ValidationRules<any, T, any>, value: 
 
 /**
  * Creates form with specific fields.
+ *
  * @param deps Useful for recreating form.
  * @example
  * interface User {
@@ -53,7 +54,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const _fields = {} as Fields<T>
-    const fieldNames = () => Object.keys(_fields) as FieldName<T>[]
+    const fieldNames = () => Object.keys(fields) as FieldName<T>[]
 
     const transformError = (field: Field, error: any) => {
       return (error && _opts.transformers?.error?.(error, field)) || error || null
@@ -113,7 +114,12 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     const handleFieldBlur = async (name: keyof T) => {
       const field = _fields[name]
 
-      if (!field.dirty || field.forms) {
+      if (field.forms) {
+        forceUpdate()
+        return
+      }
+
+      if (!field.dirty) {
         return
       }
 

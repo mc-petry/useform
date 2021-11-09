@@ -2,11 +2,12 @@ import { motion, SVGMotionProps } from 'framer-motion'
 
 interface Props {
   className?: string
+  onClick?: () => void
 }
 
-export function CLogo({ className }: Props) {
+export function CLogo({ className, onClick }: Props) {
   return (
-    <div className={className}>
+    <div className={className} onClick={onClick}>
       {/* {!import.meta.env.SSR && ( */}
       <svg viewBox="0 0 16.93 16.93">
         <defs>
