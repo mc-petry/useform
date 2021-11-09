@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Bootstrap } from './bootstrap'
 
 ReactDOM.hydrate(
-  <BrowserRouter>
+  <BrowserRouter basename={import.meta.env.BASE_URL}>
     <Bootstrap />
   </BrowserRouter>,
   document.getElementById('root')
