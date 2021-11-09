@@ -52,7 +52,7 @@
     "docs": "run-s docs:*",
     "docs:server": "vite build --mode server --ssr src/__docs__/entry-server.tsx",
     "docs:site": "tsc && vite build --mode site && pnpm run prerender",
-    "serve": "pnpx http-server docs",
+    "serve": "pnpx http-server",
     "test": "jest --verbose",
     "prepublishOnly": "run-s build test",
     "prettify": "prettier --write \"./src/**/*.{ts,tsx}\""

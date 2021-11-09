@@ -4,7 +4,7 @@ import { Bootstrap } from './bootstrap'
 
 export function render(url: string, manifest: any) {
   return renderToString(
-    <StaticRouter location={url}>
+    <StaticRouter location={url} basename="/useform/">
       <Bootstrap />
     </StaticRouter>
   )

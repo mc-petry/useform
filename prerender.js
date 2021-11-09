@@ -8,7 +8,7 @@ async function prerender() {
   const { render } = require('./dist/server/entry-server.js')
 
   for (const url of routesToPrerender) {
-    const content = await render(url)
+    const content = await render(`/useform${url}`)
     const html = template.replace(`<!--app-html-->`, content)
 
     const filePath = `${url === '/' ? '/index' : url}.html`
