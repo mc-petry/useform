@@ -3,7 +3,7 @@
   "main": "dist/useform.js",
   "module": "dist/useform.mjs",
   "typings": "dist/useform.d.ts",
-  "version": "3.0.0",
+  "version": "3.0.1-next.0",
   "description": "React form hook",
   "files": [
     "dist"
