@@ -9,15 +9,15 @@ export function VHeader() {
   return (
     <header css={styles.header}>
       <Container css={styles.header__container}>
-        <CLogo css={styles.header__logo} onClick={() => navigate(`${import.meta.env.BASE_URL}`)} />
+        <CLogo css={styles.header__logo} onClick={() => navigate(`/`)} />
         <div css={styles.header__links}>
-          <a css={styles.header__link} onClick={() => navigate(`${import.meta.env.BASE_URL}guide`)}>
+          <a css={styles.header__link} onClick={() => navigate(`/guide`)}>
             Guide
           </a>
-          <a css={styles.header__link} onClick={() => navigate(`${import.meta.env.BASE_URL}showcase`)}>
+          <a css={styles.header__link} onClick={() => navigate(`/showcase`)}>
             Showcase
           </a>
-          <a css={styles.header__link} onClick={() => navigate(`${import.meta.env.BASE_URL}examples`)}>
+          <a css={styles.header__link} onClick={() => navigate(`/examples`)}>
             Examples
           </a>
           <a css={styles.header__link} href="https://github.com/mc-petry/useform">
