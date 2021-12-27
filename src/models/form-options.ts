@@ -1,4 +1,4 @@
-import { FieldDefinition, ValidationSchema } from './field-definition'
+import { FieldDefinition, FieldNames, ValidationSchema } from './field-definition'
 import { FieldDefinitions } from './field-definitions'
 import { FormTransformers } from './form-transformers'
 
@@ -36,11 +36,17 @@ export interface FormOptions<T, TValidationResult> {
   /**
    * Initial field values
    */
-  initialValues?: Partial<T> | null
+  initial?: Partial<T> | null
 
   /**
-   * Validation scheme.
+   * Validation schema
+   *
    * Has lower priority than [field].validate
    */
-  validationSchema?: ValidationSchema<T, TValidationResult>
+  schema?: ValidationSchema<T, TValidationResult>
+
+  /**
+   * Allows to force update on field changes without using {@link useFieldWatch}
+   */
+  watch?: boolean | FieldNames<T>
 }

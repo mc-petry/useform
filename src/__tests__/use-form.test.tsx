@@ -12,7 +12,7 @@ describe('Creation', () => {
   test('Initial field values', () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
-        initialValues: {
+        initial: {
           age: 18,
         },
       })
@@ -45,7 +45,7 @@ describe('Creation', () => {
     expect(age.label).toBe('Age')
   })
 
-  test('validationSchema', async () => {
+  test('schema', async () => {
     const {
       result: { current: form },
     } = renderHook(() =>
@@ -55,7 +55,7 @@ describe('Creation', () => {
             validate: v => !v && 'required',
           },
         },
-        validationSchema: {
+        schema: {
           age: v => !v && 'schema-required',
           name: v => !v && 'required',
         },
@@ -75,7 +75,7 @@ describe('Events', () => {
   test('field.onFocus', () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
-        validationSchema: {
+        schema: {
           age: v => !v && 'required',
           name: v => v !== 'John' && 'not a John',
         },
@@ -92,7 +92,7 @@ describe('Events', () => {
   test('field.onChange', async () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
-        validationSchema: {
+        schema: {
           age: v => !v && 'required',
           name: v => v !== 'John' && 'not a John',
         },
@@ -109,7 +109,7 @@ describe('Events', () => {
   test('field.onBlur', async () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
-        validationSchema: {
+        schema: {
           age: v => !v && 'required',
           name: v => v !== 'John' && 'not a John',
         },
@@ -265,7 +265,7 @@ describe('Actions', () => {
       result: { current: form },
     } = renderHook(() =>
       useForm<UserDTO>({
-        validationSchema: {
+        schema: {
           name: [
             v => !v && 'required',
             async v => {
@@ -274,7 +274,7 @@ describe('Actions', () => {
             },
           ],
         },
-        initialValues: {
+        initial: {
           name: 'Yamaha',
         },
       })
@@ -294,7 +294,7 @@ describe('Actions', () => {
       result: { current: form },
     } = renderHook(() =>
       useForm<UserDTO>({
-        validationSchema: {
+        schema: {
           name: v => !v && 'required',
         },
       })
@@ -356,7 +356,7 @@ describe('Create factory', () => {
 
     const { result } = renderHook(() =>
       useForm<{ name: string }>({
-        validationSchema: {
+        schema: {
           name: v => !v && { result: 'error' },
         },
       })
@@ -380,7 +380,7 @@ describe('Create factory', () => {
 
     const { result } = renderHook(() =>
       useForm<{ name: string }>({
-        validationSchema: {
+        schema: {
           name: v => !v && { result: 'error' },
         },
         transformers: {

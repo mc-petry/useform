@@ -28,7 +28,7 @@ interface User {
 
 export function VShowcase() {
   const form = useForm<User>({
-    initialValues: {
+    initial: {
       account: {} as Account,
       contact: [
         {
@@ -38,7 +38,7 @@ export function VShowcase() {
         },
       ],
     },
-    validationSchema: {
+    schema: {
       firstName: v => !v && 'First name required',
       lastName: v => !v && 'Last name required',
     },
@@ -85,7 +85,7 @@ function AccountForm({ field }: AccountFormProps) {
         dependent: 'password2',
       },
     },
-    validationSchema: {
+    schema: {
       email: v => !/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/.test(v) && 'Invalid email address',
       password: [
         v => !v || (v.length < 8 && 'Password too short'),
@@ -111,7 +111,7 @@ interface ContactFormProps {
 
 function ContactForm({ field, index }: ContactFormProps) {
   const { fields } = useFieldArray(field, index, {
-    validationSchema: {
+    schema: {
       address: [],
     },
   })

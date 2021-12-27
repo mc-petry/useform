@@ -17,7 +17,7 @@ import { Field, Fields, Form, FormOptions, useForm } from '.'
  */
 export function useFieldNested<T extends Record<string, any>>(
   rootField: Field<T>,
-  options?: Pick<FormOptions<T, any>, 'fields' | 'validationSchema'>
+  options?: Pick<FormOptions<T, any>, 'fields' | 'schema'>
 ) {
   const childForm = useForm(options, [rootField])
 
@@ -28,7 +28,7 @@ export function useFieldNested<T extends Record<string, any>>(
 
   const proxy = useMemo(() => {
     /**
-     * Sets default values from {@link Form.initialValues}.
+     * Sets default values from {@link Form.initial}.
      */
     if (rootField.value) {
       childForm.setValues(rootField.value)

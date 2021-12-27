@@ -15,7 +15,7 @@ interface Card {
 
 export function VExamplesNested() {
   const form = useForm<Card>({
-    initialValues: {
+    initial: {
       user: {
         firstName: 'Adeline',
       },

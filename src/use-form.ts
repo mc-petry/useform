@@ -69,7 +69,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
           await form.validate(undefined, true)
         }
       } else {
-        const validateFn = def.validate || _opts.validationSchema?.[name]
+        const validateFn = def.validate || _opts.schema?.[name]
         const warnFn = def.warn
 
         field.error = validateFn ? transformError(field, await callValidate(validateFn, field.value, _fields)) : null
@@ -86,7 +86,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       }
     }
 
-    const handleFieldChange = async (name: keyof T, value: any) => {
+    const handleFieldChange = async (name: FieldName<T>, value: any) => {
       const field = _fields[name] as Mutable<Field>
 
       field.value = value
@@ -97,6 +97,12 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
 
       if (validateOnChange) {
         await validateField(name)
+      }
+
+      const watch = _opts.watch
+
+      if (watch && (typeof watch === 'boolean' || asArray(watch).includes(name))) {
+        forceUpdate()
       }
     }
 
@@ -134,7 +140,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const getFieldInitialValue = (name: FieldName<T>) => {
-      return _opts.initialValues?.[name] || INITIAL_FIELD_STATE.value
+      return _opts.initial?.[name] || INITIAL_FIELD_STATE.value
     }
 
     const fields: Fields<T> = new Proxy(_fields, {
@@ -188,8 +194,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
       }
     }
 
-    initFields(_opts.validationSchema)
-    initFields(_opts.initialValues)
+    initFields(_opts.schema)
+    initFields(_opts.initial)
 
     const handleSubmit = (onSubmit: (values: T) => void) => async (e: React.SyntheticEvent) => {
       e.preventDefault()

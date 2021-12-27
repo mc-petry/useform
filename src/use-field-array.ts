@@ -14,7 +14,7 @@ import { ValidationResultDefault } from './models/field-definition'
 export function useFieldArray<T extends Record<string, any>, TValidationResult = ValidationResultDefault>(
   rootField: Field<T[]>,
   index: number,
-  options?: Pick<FormOptions<T, TValidationResult>, 'fields' | 'validationSchema'>
+  options?: Pick<FormOptions<T, TValidationResult>, 'fields' | 'schema'>
 ) {
   const childForm = useForm(options, [rootField])
 
@@ -25,7 +25,7 @@ export function useFieldArray<T extends Record<string, any>, TValidationResult =
 
   const proxy = useMemo(() => {
     /**
-     * Sets default values from {@link Form.initialValues}.
+     * Sets default values from {@link Form.initial}.
      */
     if (rootField.value?.[index] !== undefined) {
       childForm.setValues(rootField.value[index])
@@ -43,7 +43,7 @@ export function useFieldArray<T extends Record<string, any>, TValidationResult =
             const arr = rootField.value!
 
             /**
-             * Cloning an existing array prevents the source from being changed from {@link Form.initialValues}.
+             * Cloning an existing array prevents the source from being changed from {@link Form.initial}.
              */
             const newValue = [...arr]
             newValue[index] = {

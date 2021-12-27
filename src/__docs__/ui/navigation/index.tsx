@@ -14,7 +14,6 @@ export function CNavigation({ items }: Props) {
             key={i}
             css={[styles.sidebar__item, x.children && styles.sidebar__item_children]}
             onClick={() => {
-              console.log(document.getElementById(`example-${i}`))
               document.getElementById(`example-${i}`)!.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',

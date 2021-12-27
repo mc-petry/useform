@@ -1,13 +1,13 @@
 docs
 node_modules
-src/__docs__
-src/__tests__
+src
 .eslintrc.json
 .gitignore
 .prettierrc.json
 .travis.yml
 index.html
 jest.config.js
+pnpm-lock.yaml
 prerender.js
 rollup.config.ts
 tsconfig.json

@@ -17,7 +17,7 @@ interface AnimalGroup {
 
 export function VExamplesFieldArray() {
   const form = useForm<AnimalGroup>({
-    initialValues: {
+    initial: {
       group: 'Mammal',
       animals: [
         {
