@@ -1,7 +1,9 @@
 import { createRef, useMemo, useReducer } from 'react'
-import { Field, FieldDefinitions, Fields, Form, FormOptions } from '.'
-import { FieldErrors, FieldName, FieldNames, ValidationResultDefault, ValidationRules } from './models/field-definition'
-import { Mutable } from './models/mutable'
+import { Field, FieldConfigurations, Fields, Form, FormOptions, ValidationRules } from '.'
+import { Mutable } from './helpers/mutable'
+import { FieldConfigurationDynamic } from './models/field-configuration'
+import { FieldName, FieldNames } from './models/field-name'
+import { FieldErrors, ValidationResultDefault } from './models/validation'
 
 const INITIAL_FIELD_STATE: Pick<Field, 'dirty' | 'touched' | 'error' | 'warn' | 'value'> = {
   dirty: false,
@@ -46,7 +48,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
   const [, forceUpdate] = useReducer(x => x + 1, 0)
 
   const res = useMemo(() => {
-    const _defs = (options.fields || {}) as FieldDefinitions<T, TValidationResult>
+    const _defs = (options.fields || {}) as FieldConfigurations<T, TValidationResult>
     const _opts: Omit<FormOptions<T, any>, 'fields'> = {
       validateOnBlur: true,
       validateOnChange: false,
@@ -69,7 +71,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
           await form.validate(undefined, true)
         }
       } else {
-        const validateFn = def.validate || _opts.schema?.[name]
+        const validateFn =
+          (def as FieldConfigurationDynamic<any, T, TValidationResult>).validate || _opts.schema?.[name]
         const warnFn = def.warn
 
         field.error = validateFn ? transformError(field, await callValidate(validateFn, field.value, _fields)) : null
@@ -154,7 +157,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
             ...INITIAL_FIELD_STATE,
             ref: createRef(),
             name,
-            label: _opts.transformers?.label?.(name) || undefined,
             value: getFieldInitialValue(name),
 
             onChange: value => handleFieldChange(name, value),

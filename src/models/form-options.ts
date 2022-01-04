@@ -1,13 +1,14 @@
-import { FieldDefinition, FieldNames, ValidationSchema } from './field-definition'
-import { FieldDefinitions } from './field-definitions'
+import { FieldConfiguration, FieldConfigurationDynamic } from './field-configuration'
+import { FieldConfigurations } from './field-configurations'
+import { FieldNames } from './field-name'
 import { FormTransformers } from './form-transformers'
+import { ValidationSchema } from './validation'
 
-// TODO:
 export interface FormOptions<T, TValidationResult> {
   /**
    * Fields definitions
    */
-  fields?: Partial<FieldDefinitions<T, TValidationResult>>
+  fields?: Partial<FieldConfigurations<T, TValidationResult>>
 
   /**
    * Form transformers
@@ -31,17 +32,21 @@ export interface FormOptions<T, TValidationResult> {
   /**
    * Dynamic field configuration
    */
-  dynamic?: (fieldName: string) => FieldDefinition<any, T, TValidationResult> | undefined
+  dynamic?: (
+    fieldName: string
+  ) => FieldConfiguration<any, T, TValidationResult> & FieldConfigurationDynamic<any, T, TValidationResult>
 
   /**
-   * Initial field values
-   */
-  initial?: Partial<T> | null
-
-  /**
-   * Validation schema
+   * Defines the custom validation schema.
+   * Classic rule must return success as `false | undefined` or error of other types:
    *
-   * Has lower priority than [field].validate
+   * Custom validation rules:
+   * @example value => !value && 'Required'
+   * @example value => (!value && 'Required') || (value.length < 10 && 'Min length is 10')
+   * @example [
+   *  value => !value && 'Required',
+   *  value => value!.length < 5 && 'Min length is 5'
+   * ]
    */
   schema?: ValidationSchema<T, TValidationResult>
 
@@ -49,4 +54,9 @@ export interface FormOptions<T, TValidationResult> {
    * Allows to force update on field changes without using {@link useFieldWatch}
    */
   watch?: boolean | FieldNames<T>
+
+  /**
+   * Initial field values.
+   */
+  initial?: T
 }

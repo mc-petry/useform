@@ -1,5 +1,6 @@
-import { FieldErrors, FieldNames } from './field-definition'
+import { FieldNames } from './field-name'
 import { Fields } from './fields'
+import { FieldErrors } from './validation'
 
 export interface Form<T extends Record<string, any> = any> {
   /**

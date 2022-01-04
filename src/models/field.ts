@@ -52,11 +52,6 @@ export interface Field<TValue extends unknown = any, TName extends string = any>
    */
   readonly warn: any
 
-  /**
-   * Gets the label.
-   */
-  readonly label: any
-
   onFocus: () => void
   onBlur: () => Promise<void>
   onChange: (value: TValue) => Promise<void>

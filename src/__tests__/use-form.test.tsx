@@ -21,7 +21,6 @@ describe('Creation', () => {
     const { ref, onBlur, onChange, onFocus, addForm, removeForm, forms, ...fieldState } = name
     const state: typeof fieldState = {
       name: 'name',
-      label: undefined,
       dirty: false,
       touched: false,
       value: undefined,
@@ -33,28 +32,11 @@ describe('Creation', () => {
     expect(age.value).toEqual(18)
   })
 
-  test('Label transformer', () => {
-    const { result } = renderHook(() =>
-      useForm<UserDTO>({
-        transformers: {
-          label: name => name[0].toUpperCase() + name.substr(1),
-        },
-      })
-    )
-    const { age } = result.current.fields
-    expect(age.label).toBe('Age')
-  })
-
   test('schema', async () => {
     const {
       result: { current: form },
     } = renderHook(() =>
       useForm<UserDTO>({
-        fields: {
-          age: {
-            validate: v => !v && 'required',
-          },
-        },
         schema: {
           age: v => !v && 'schema-required',
           name: v => !v && 'required',
@@ -134,9 +116,11 @@ describe('Actions', () => {
       useForm<UserDTO>({
         fields: {
           name: {
-            validate: value => value !== 'Adelina' && 'required',
             warn: value => value !== 'Adelina' && 'required',
           },
+        },
+        schema: {
+          name: value => value !== 'Adelina' && 'required',
         },
       })
     )
@@ -163,14 +147,8 @@ describe('Actions', () => {
   test('form.validate array', async () => {
     const { result } = renderHook(() =>
       useForm<UserDTO>({
-        fields: {
-          age: {
-            validate: [
-              //
-              value => !value && 'required',
-              value => value! < 18 && 'too-young',
-            ],
-          },
+        schema: {
+          age: [value => !value && 'required', value => value! < 18 && 'too-young'],
         },
       })
     )
@@ -204,10 +182,12 @@ describe('Actions', () => {
       useForm<UserDTO>({
         fields: {
           name: {
-            validate: value => value !== 'Adelina' && 'required',
             warn: value => value !== 'Adelina' && 'required',
             validateOnChange: true,
           },
+        },
+        schema: {
+          name: value => value !== 'Adelina' && 'required',
         },
       })
     )
@@ -228,11 +208,13 @@ describe('Actions', () => {
       useForm<UserDTO>({
         fields: {
           name: {
-            validate: value => value !== 'Adelina' && 'required',
             warn: value => value !== 'Adelina' && 'required',
           },
         },
         validateOnChange: true,
+        schema: {
+          name: value => value !== 'Adelina' && 'required',
+        },
       })
     )
 
@@ -276,6 +258,7 @@ describe('Actions', () => {
         },
         initial: {
           name: 'Yamaha',
+          age: 18,
         },
       })
     )

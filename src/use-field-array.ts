@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { Field, Fields, Form, FormOptions, useForm } from '.'
-import { ValidationResultDefault } from './models/field-definition'
+import { ValidationResultDefault } from './models/validation'
 
 /**
  * Creates subform for array field.
