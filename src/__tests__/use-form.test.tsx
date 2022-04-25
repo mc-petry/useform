@@ -6,6 +6,7 @@ import { delay } from './utils'
 interface UserDTO {
   name?: string
   age: number
+  unused: string
 }
 
 describe('Creation', () => {
@@ -300,6 +301,7 @@ describe('Actions', () => {
     const values: UserDTO = {
       age: 18,
       name: 'John',
+      unused: '',
     }
 
     act(() => {
