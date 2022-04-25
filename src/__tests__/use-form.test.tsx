@@ -48,7 +48,7 @@ describe('Creation', () => {
       await form.validate()
     })
 
-    expect(form.fields.age.error).toBe('required')
+    expect(form.fields.age.error).toBe('schema-required')
     expect(form.fields.name.error).toBe('required')
   })
 })

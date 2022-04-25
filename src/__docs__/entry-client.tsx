@@ -1,10 +1,10 @@
-import ReactDOM from 'react-dom'
+import { hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Bootstrap } from './bootstrap'
 
-ReactDOM.hydrate(
+hydrateRoot(
+  document.getElementById('root')!,
   <BrowserRouter basename={import.meta.env.BASE_URL}>
     <Bootstrap />
-  </BrowserRouter>,
-  document.getElementById('root')
+  </BrowserRouter>
 )

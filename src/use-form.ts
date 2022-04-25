@@ -199,8 +199,10 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     initFields(_opts.schema)
     initFields(_opts.initial)
 
-    const handleSubmit = (onSubmit: (values: T) => void) => async (e: React.SyntheticEvent) => {
-      e.preventDefault()
+    const handleSubmit = (onSubmit: (values: T) => void) => async (e?: React.SyntheticEvent) => {
+      if (e && e.preventDefault) {
+        e.preventDefault()
+      }
 
       if (await validate()) {
         onSubmit(getValues())

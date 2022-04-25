@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { FormOptions, FormTransformers, useForm } from '.'
-import { ValidationResultDefault } from './models/field-configuration'
+import { ValidationResultDefault } from './models/validation'
 
 interface FactoryProps<TValidationResult> {
   validateOnBlur?: boolean
