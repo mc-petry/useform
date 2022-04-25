@@ -23,7 +23,7 @@ export interface Form<T extends Record<string, any> = any> {
    *   ...
    * })}>
    */
-  handleSubmit: (onSubmit: (values: T) => void) => (e: React.SyntheticEvent<Element, Event>) => Promise<void>
+  handleSubmit: (onSubmit: (values: T) => void) => (e?: React.SyntheticEvent<Element, Event>) => Promise<void>
 
   /**
    * Gets a value that indicates whether the form has error.
