@@ -143,7 +143,6 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const getFieldInitialValue = (name: FieldName<T>) => {
-      debugger
       return _opts.initial?.[name] ?? INITIAL_FIELD_STATE.value
     }
 
