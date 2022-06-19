@@ -6,6 +6,7 @@ import { delay } from './utils'
 interface UserDTO {
   name?: string
   age: number
+  amount?: number
   unused: string
 }
 
@@ -15,10 +16,11 @@ describe('Creation', () => {
       useForm<UserDTO>({
         initial: {
           age: 18,
+          amount: 0,
         },
       })
     )
-    const { name, age } = result.current.fields
+    const { name, age, amount } = result.current.fields
     const { ref, onBlur, onChange, onFocus, addForm, removeForm, forms, ...fieldState } = name
     const state: typeof fieldState = {
       name: 'name',
@@ -31,6 +33,7 @@ describe('Creation', () => {
 
     expect(fieldState).toEqual(state)
     expect(age.value).toEqual(18)
+    expect(amount.value).toEqual(0)
   })
 
   test('schema', async () => {
@@ -323,6 +326,24 @@ describe('Actions', () => {
     })
     expect(form.fields.age.error).toBe('required')
     expect(form.fields.name.warn).toBe('empty')
+  })
+
+  test('form.reset', () => {
+    const {
+      result: { current: form },
+    } = renderHook(() =>
+      useForm<{ name: string; address: { nested: string }[] }>({
+        initial: {
+          name: 'Adeline',
+          address: [{ nested: 'One' }],
+        },
+      })
+    )
+
+    act(() => form.setValues({ name: 'John' }))
+    act(() => form.reset())
+
+    expect(form.fields.name.value).toBe('Adeline')
   })
 })
 

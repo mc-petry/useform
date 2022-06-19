@@ -143,7 +143,8 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
     }
 
     const getFieldInitialValue = (name: FieldName<T>) => {
-      return _opts.initial?.[name] || INITIAL_FIELD_STATE.value
+      debugger
+      return _opts.initial?.[name] ?? INITIAL_FIELD_STATE.value
     }
 
     const fields: Fields<T> = new Proxy(_fields, {
@@ -329,7 +330,7 @@ export function useForm<T extends Record<string, any>, TValidationResult = Valid
         //   value: getFieldInitialValue(name),
         // }
 
-        // field.forms?.forEach(form => form.reset())
+        field.forms?.forEach(form => form.reset())
       }
 
       // if (!silent) {
